@@ -3,50 +3,59 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#F5F5F5">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Gestion des Clients"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
-
-    <LinearLayout
+    <!-- Barre de recherche -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:layout_marginBottom="8dp">
 
-        <EditText
-            android:id="@+id/editTextSearch"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Rechercher un client..."
-            android:layout_marginEnd="8dp"/>
+            android:orientation="horizontal"
+            android:padding="12dp">
 
-        <Button
-            android:id="@+id/buttonSearch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔍"/>
+            <EditText
+                android:id="@+id/editTextSearch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Rechercher un client..."
+                android:inputType="text"
+                android:maxLines="1"
+                android:padding="12dp" />
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/buttonSearch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rechercher" />
 
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Bouton Ajouter -->
+    <Button
+        android:id="@+id/buttonAddClient"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="+ Ajouter un client"
+        android:textColor="#FFFFFF"
+        android:layout_margin="16dp"
+        android:background="#3F51B5" />
+
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewClients"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginBottom="16dp"/>
-
-    <Button
-        android:id="@+id/buttonAddClient"  
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="+ Ajouter un nouveau client"
-        android:layout_marginTop="16dp"/>
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="80dp" />
 
 </LinearLayout>

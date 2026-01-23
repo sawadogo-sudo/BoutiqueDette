@@ -1,71 +1,66 @@
 package bf.amido.sawadogo.boutiquedette.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
-
-import bf.amido.sawadogo.boutiquedette.models.Client;
 import bf.amido.sawadogo.boutiquedette.R;
-
+import bf.amido.sawadogo.boutiquedette.models.Client;
 import java.util.List;
 
-public class ClientAdapter extends RecyclerView.Adapter<ClientAdapter.ViewHolder> {
+public class ClientAdapter extends RecyclerView.Adapter<ClientAdapter.ClientViewHolder> {
     
     private Context context;
     private List<Client> clientList;
+    private OnClientClickListener listener;
     
-    public ClientAdapter(Context context, List<Client> clientList) {
+    public interface OnClientClickListener {
+        void onClientClick(Client client);
+        void onClientLongClick(Client client);
+    }
+    
+    public ClientAdapter(Context context, List<Client> clientList, OnClientClickListener listener) {
         this.context = context;
         this.clientList = clientList;
+        this.listener = listener;
     }
     
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ClientViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_client, parent, false);
-        return new ViewHolder(view);
+        return new ClientViewHolder(view);
     }
     
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ClientViewHolder holder, int position) {
         Client client = clientList.get(position);
         
-        holder.textNom.setText(client.getNom());
-        holder.textTelephone.setText(client.getTelephone());
-        holder.textSolde.setText(String.format("%.2f F", client.getSolde()));
+        holder.textViewName.setText(client.getNom());
+        holder.textViewPhone.setText(client.getTelephone());
         
-        // Changer la couleur du solde selon le montant
-        if (client.getSolde() > 1000) {
-            holder.textSolde.setTextColor(context.getResources().getColor(R.color.danger_color));
-        } else if (client.getSolde() > 500) {
-            holder.textSolde.setTextColor(context.getResources().getColor(R.color.warning_color));
+        if (client.getVille() != null && !client.getVille().isEmpty()) {
+            holder.textViewCity.setText(client.getVille());
+            holder.textViewCity.setVisibility(View.VISIBLE);
         } else {
-            holder.textSolde.setTextColor(context.getResources().getColor(R.color.success_color));
+            holder.textViewCity.setVisibility(View.GONE);
         }
         
-        // Click listener temporaire
-        holder.cardClient.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO: Implémenter l'ouverture de ClientDetailsActivity
-                Toast.makeText(context, "Détails de " + client.getNom(), Toast.LENGTH_SHORT).show();
-                
-                // Pour l'instant, afficher un simple message
-                // Quand vous créerez ClientDetailsActivity, décommentez ces lignes :
-                /*
-                Intent intent = new Intent(context, ClientDetailsActivity.class);
-                intent.putExtra("client_id", client.getId());
-                intent.putExtra("client_nom", client.getNom());
-                context.startActivity(intent);
-                */
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onClientClick(client);
             }
+        });
+        
+        holder.itemView.setOnLongClickListener(v -> {
+            if (listener != null) {
+                listener.onClientLongClick(client);
+                return true;
+            }
+            return false;
         });
     }
     
@@ -75,20 +70,19 @@ public class ClientAdapter extends RecyclerView.Adapter<ClientAdapter.ViewHolder
     }
     
     public void updateList(List<Client> newList) {
-        clientList = newList;
+        clientList.clear();
+        clientList.addAll(newList);
         notifyDataSetChanged();
     }
     
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        CardView cardClient;
-        TextView textNom, textTelephone, textSolde;
+    static class ClientViewHolder extends RecyclerView.ViewHolder {
+        TextView textViewName, textViewPhone, textViewCity;
         
-        public ViewHolder(@NonNull View itemView) {
+        public ClientViewHolder(@NonNull View itemView) {
             super(itemView);
-            cardClient = itemView.findViewById(R.id.cardClient);
-            textNom = itemView.findViewById(R.id.textNom);
-            textTelephone = itemView.findViewById(R.id.textTelephone);
-            textSolde = itemView.findViewById(R.id.textSolde);
+            textViewName = itemView.findViewById(R.id.textViewName);
+            textViewPhone = itemView.findViewById(R.id.textViewPhone);
+            textViewCity = itemView.findViewById(R.id.textViewCity);
         }
     }
 }

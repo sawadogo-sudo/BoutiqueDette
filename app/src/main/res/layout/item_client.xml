@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/cardClient"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    android:background="#FFFFFF"
+    android:elevation="2dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,33 +15,35 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Nom du client -->
         <TextView
-            android:id="@+id/textNom"
+            android:id="@+id/textViewName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nom Client"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"/>
-
-        <TextView
-            android:id="@+id/textTelephone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Téléphone"
-            android:textSize="14sp"
-            android:layout_marginTop="4dp"
-            android:textColor="@color/gray"/>
-
-        <TextView
-            android:id="@+id/textSolde"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="0.00 CFA"
+            android:text="Nom du client"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="8dp"
-            android:gravity="end"/>
+            android:textColor="#212121" />
+
+        <!-- Téléphone -->
+        <TextView
+            android:id="@+id/textViewPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="+226 70 12 34 56"
+            android:textSize="14sp"
+            android:textColor="#757575"
+            android:layout_marginTop="4dp" />
+
+        <!-- Ville -->
+        <TextView
+            android:id="@+id/textViewCity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ouagadougou"
+            android:textSize="13sp"
+            android:textColor="#BDBDBD"
+            android:layout_marginTop="2dp" />
 
     </LinearLayout>
 

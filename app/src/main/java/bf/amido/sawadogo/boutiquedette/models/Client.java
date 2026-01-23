@@ -1,98 +1,58 @@
 package bf.amido.sawadogo.boutiquedette.models;
 
-import com.google.gson.annotations.SerializedName;
-import java.util.Date;
-
 public class Client {
-    
-    @SerializedName("id")
     private String id;
-    
-    @SerializedName("nom")
     private String nom;
-    
-    @SerializedName("telephone")
+    private String prenom;
     private String telephone;
-    
-    @SerializedName("adresse")
+    private String email;
     private String adresse;
+    private String ville;
+    private double solde; // AJOUTÉ
+    private String created_at;
     
-    @SerializedName("solde")
-    private double solde;
+    // Constructeurs
+    public Client() {}
     
-    @SerializedName("created_at")
-    private Date createdAt;
-    
-    // Constructeur par défaut
-    public Client() {
-        this.solde = 0.0;
-        this.createdAt = new Date();
-    }
-    
-    // Constructeur avec paramètres
-    public Client(String nom, String telephone, String adresse) {
+    public Client(String nom, String telephone, String ville) {
         this.nom = nom;
         this.telephone = telephone;
-        this.adresse = adresse;
-        this.solde = 0.0;
-        this.createdAt = new Date();
+        this.ville = ville;
     }
     
-    // Getters et Setters
-    public String getId() {
-        return id;
-    }
+    // Getters et setters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
     
-    public String getNom() {
+    public String getPrenom() { return prenom; }
+    public void setPrenom(String prenom) { this.prenom = prenom; }
+    
+    public String getTelephone() { return telephone; }
+    public void setTelephone(String telephone) { this.telephone = telephone; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getAdresse() { return adresse; }
+    public void setAdresse(String adresse) { this.adresse = adresse; }
+    
+    public String getVille() { return ville; }
+    public void setVille(String ville) { this.ville = ville; }
+    
+    public double getSolde() { return solde; } // AJOUTÉ
+    public void setSolde(double solde) { this.solde = solde; } // AJOUTÉ
+    
+    public String getCreated_at() { return created_at; }
+    public void setCreated_at(String created_at) { this.created_at = created_at; }
+    
+    // Méthode utilitaire
+    public String getFullName() {
+        if (prenom != null && !prenom.isEmpty()) {
+            return nom + " " + prenom;
+        }
         return nom;
-    }
-    
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-    
-    public String getTelephone() {
-        return telephone;
-    }
-    
-    public void setTelephone(String telephone) {
-        this.telephone = telephone;
-    }
-    
-    public String getAdresse() {
-        return adresse;
-    }
-    
-    public void setAdresse(String adresse) {
-        this.adresse = adresse;
-    }
-    
-    public double getSolde() {
-        return solde;
-    }
-    
-    public void setSolde(double solde) {
-        this.solde = solde;
-    }
-    
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    @Override
-    public String toString() {
-        return "Client{" +
-                "nom='" + nom + '\'' +
-                ", telephone='" + telephone + '\'' +
-                ", solde=" + solde +
-                '}';
     }
 }

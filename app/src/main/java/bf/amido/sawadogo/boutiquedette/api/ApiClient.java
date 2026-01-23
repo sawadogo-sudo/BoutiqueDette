@@ -7,7 +7,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
     
-    private static final String BASE_URL = "https://your-supabase-url.supabase.co/rest/v1/";
     private static Retrofit retrofit = null;
     
     public static Retrofit getClient() {
@@ -23,8 +22,8 @@ public class ApiClient {
                         // Ajouter les headers nécessaires pour Supabase
                         return chain.proceed(chain.request()
                                 .newBuilder()
-                                .addHeader("apikey", SupabaseConfig.API_KEY)
-                                .addHeader("Authorization", "Bearer " + SupabaseConfig.API_KEY)
+                                .addHeader("apikey", "YOUR_SUPABASE_ANON_KEY")
+                                .addHeader("Authorization", "Bearer YOUR_SUPABASE_ANON_KEY")
                                 .addHeader("Content-Type", "application/json")
                                 .addHeader("Prefer", "return=representation")
                                 .build());
@@ -33,11 +32,16 @@ public class ApiClient {
             
             // Créer Retrofit
             retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
+                    .baseUrl("https://YOUR_PROJECT_ID.supabase.co/rest/v1/")
                     .client(okHttpClient)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
         return retrofit;
+    }
+    
+    // Méthode pour créer le service API
+    public static <T> T createService(Class<T> serviceClass) {
+        return getClient().create(serviceClass);
     }
 }
