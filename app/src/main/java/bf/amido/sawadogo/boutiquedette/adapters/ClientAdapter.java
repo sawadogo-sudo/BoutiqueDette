@@ -1,6 +1,5 @@
 package bf.amido.sawadogo.boutiquedette.adapters;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,39 +8,53 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import bf.amido.sawadogo.boutiquedette.R;
 import bf.amido.sawadogo.boutiquedette.models.Client;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientAdapter extends RecyclerView.Adapter<ClientAdapter.ClientViewHolder> {
     
-    private Context context;
-    private List<Client> clientList;
-    private OnClientClickListener listener;
+    private List<Client> clients;
+    private OnItemClickListener listener;
     
-    public interface OnClientClickListener {
-        void onClientClick(Client client);
-        void onClientLongClick(Client client);
+    public interface OnItemClickListener {
+        void onItemClick(Client client);
     }
     
-    public ClientAdapter(Context context, List<Client> clientList, OnClientClickListener listener) {
-        this.context = context;
-        this.clientList = clientList;
+    public ClientAdapter(List<Client> clients, OnItemClickListener listener) {
+        this.clients = clients != null ? clients : new ArrayList<>();
         this.listener = listener;
+    }
+    
+    public void setClients(List<Client> clients) {
+        this.clients = clients != null ? clients : new ArrayList<>();
+        notifyDataSetChanged();
+    }
+    
+    public void filterList(List<Client> filteredList) {
+        this.clients = filteredList;
+        notifyDataSetChanged();
     }
     
     @NonNull
     @Override
     public ClientViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_client, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_client, parent, false);
         return new ClientViewHolder(view);
     }
     
     @Override
     public void onBindViewHolder(@NonNull ClientViewHolder holder, int position) {
-        Client client = clientList.get(position);
+        Client client = clients.get(position);
         
-        holder.textViewName.setText(client.getNom());
+        // Nom complet
+        String fullName = client.getNom() + " " + client.getPrenom();
+        holder.textViewName.setText(fullName);
+        
+        // Téléphone
         holder.textViewPhone.setText(client.getTelephone());
         
+        // Ville
         if (client.getVille() != null && !client.getVille().isEmpty()) {
             holder.textViewCity.setText(client.getVille());
             holder.textViewCity.setVisibility(View.VISIBLE);
@@ -49,40 +62,30 @@ public class ClientAdapter extends RecyclerView.Adapter<ClientAdapter.ClientView
             holder.textViewCity.setVisibility(View.GONE);
         }
         
+        // Gestion du clic
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onClientClick(client);
+                listener.onItemClick(client);
             }
-        });
-        
-        holder.itemView.setOnLongClickListener(v -> {
-            if (listener != null) {
-                listener.onClientLongClick(client);
-                return true;
-            }
-            return false;
         });
     }
     
     @Override
     public int getItemCount() {
-        return clientList.size();
-    }
-    
-    public void updateList(List<Client> newList) {
-        clientList.clear();
-        clientList.addAll(newList);
-        notifyDataSetChanged();
+        return clients.size();
     }
     
     static class ClientViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewName, textViewPhone, textViewCity;
+        TextView textViewName;
+        TextView textViewPhone;
+        TextView textViewCity;
         
-        public ClientViewHolder(@NonNull View itemView) {
+        ClientViewHolder(View itemView) {
             super(itemView);
             textViewName = itemView.findViewById(R.id.textViewName);
             textViewPhone = itemView.findViewById(R.id.textViewPhone);
             textViewCity = itemView.findViewById(R.id.textViewCity);
+            // PAS DE textViewEmail ici !
         }
     }
 }

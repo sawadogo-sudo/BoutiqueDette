@@ -63,6 +63,13 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <!-- AddEditDette Activity (NOUVELLE) -->
+        <activity
+            android:name=".AddEditDetteActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>

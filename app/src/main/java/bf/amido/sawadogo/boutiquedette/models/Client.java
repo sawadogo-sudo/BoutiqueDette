@@ -1,26 +1,47 @@
 package bf.amido.sawadogo.boutiquedette.models;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Client {
+    
+    @SerializedName("id")
     private String id;
+    
+    @SerializedName("nom")
     private String nom;
+    
+    @SerializedName("prenom")
     private String prenom;
+    
+    @SerializedName("telephone")
     private String telephone;
+    
+    @SerializedName("email")
     private String email;
+    
+    @SerializedName("adresse")
     private String adresse;
+    
+    @SerializedName("ville")  // CE CHAMP DOIT EXISTER
     private String ville;
-    private double solde; // AJOUTÉ
-    private String created_at;
+    
+    @SerializedName("created_at")
+    private String createdAt;
+    
+    @SerializedName("user_id")
+    private String userId;
     
     // Constructeurs
-    public Client() {}
-    
-    public Client(String nom, String telephone, String ville) {
-        this.nom = nom;
-        this.telephone = telephone;
-        this.ville = ville;
+    public Client() {
     }
     
-    // Getters et setters
+    public Client(String nom, String prenom, String telephone) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+    }
+    
+    // Getters et Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     
@@ -39,20 +60,18 @@ public class Client {
     public String getAdresse() { return adresse; }
     public void setAdresse(String adresse) { this.adresse = adresse; }
     
+    // TRÈS IMPORTANT : CES MÉTHODES DOIVENT EXISTER
     public String getVille() { return ville; }
     public void setVille(String ville) { this.ville = ville; }
     
-    public double getSolde() { return solde; } // AJOUTÉ
-    public void setSolde(double solde) { this.solde = solde; } // AJOUTÉ
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
     
-    public String getCreated_at() { return created_at; }
-    public void setCreated_at(String created_at) { this.created_at = created_at; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     
-    // Méthode utilitaire
-    public String getFullName() {
-        if (prenom != null && !prenom.isEmpty()) {
-            return nom + " " + prenom;
-        }
-        return nom;
+    @Override
+    public String toString() {
+        return nom + " " + prenom;
     }
 }
