@@ -8,8 +8,10 @@ import androidx.fragment.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -25,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     
     private BottomNavigationView bottomNavigationView;
     private Toolbar toolbar;
+    private TextView toolbarTitle;
+    private ImageView imageMenu;
     private SharedPreferences sharedPreferences;
     
     @Override
@@ -34,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
         
         sharedPreferences = getSharedPreferences("boutique_prefs", MODE_PRIVATE);
         
-        toolbar = findViewById(R.id.toolbar);
-        // SUPPRIMEZ CETTE LIGNE : setSupportActionBar(toolbar);
+        // Initialiser la Toolbar
+        initToolbar();
         
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         
@@ -48,9 +52,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment fragment = null;
-                String title = "Tableau de Bord";
+                String title = "";
                 
-                if (item.getItemId() == R.id.nav_clients) {
+                // Vérifier chaque item dans l'ordre désiré
+                if (item.getItemId() == R.id.nav_dashboard) {
+                    fragment = new DashboardFragment();
+                    title = "Tableau de Bord";
+                } else if (item.getItemId() == R.id.nav_clients) {
                     fragment = new ClientsFragment();
                     title = "Clients";
                 } else if (item.getItemId() == R.id.nav_dettes) {
@@ -73,6 +81,50 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+        
+        // Sélectionner l'item Tableau de Bord par défaut
+        bottomNavigationView.setSelectedItemId(R.id.nav_dashboard);
+    }
+    
+    private void initToolbar() {
+        toolbar = findViewById(R.id.toolbar);
+        toolbarTitle = findViewById(R.id.toolbar_title);
+        imageMenu = findViewById(R.id.imageMenu);
+        
+        // Gérer le clic sur le menu
+        imageMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPopupMenu(v);
+            }
+        });
+    }
+    
+    private void showPopupMenu(View view) {
+        androidx.appcompat.widget.PopupMenu popupMenu = new androidx.appcompat.widget.PopupMenu(this, view);
+        popupMenu.inflate(R.menu.main_menu);
+        
+        popupMenu.setOnMenuItemClickListener(new androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(android.view.MenuItem item) {
+                if (item.getItemId() == R.id.menu_logout) {
+                    logout();
+                    return true;
+                } else if (item.getItemId() == R.id.menu_settings) {
+                    Toast.makeText(MainActivity.this, "Paramètres", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (item.getItemId() == R.id.menu_refresh) {
+                    refreshCurrentFragment();
+                    return true;
+                } else if (item.getItemId() == R.id.menu_profile) {
+                    Toast.makeText(MainActivity.this, "Profil", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                return false;
+            }
+        });
+        
+        popupMenu.show();
     }
     
     private void loadFragment(Fragment fragment) {
@@ -83,26 +135,21 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void updateToolbarTitle(String title) {
-        // Mettez à jour le titre directement sur le Toolbar
-        toolbar.setTitle(title);
+        toolbarTitle.setText(title);
     }
     
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return true;
-    }
-    
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menu_logout) {
-            logout();
-            return true;
-        } else if (item.getItemId() == R.id.menu_settings) {
-            Toast.makeText(this, "Paramètres", Toast.LENGTH_SHORT).show();
-            return true;
+    private void refreshCurrentFragment() {
+        Fragment currentFragment = getSupportFragmentManager()
+            .findFragmentById(R.id.fragment_container);
+        
+        if (currentFragment != null) {
+            if (currentFragment instanceof DashboardFragment) {
+                ((DashboardFragment) currentFragment).refreshData();
+                Toast.makeText(this, "Dashboard actualisé", Toast.LENGTH_SHORT).show();
+            } else if (currentFragment instanceof ClientsFragment) {
+                Toast.makeText(this, "Liste des clients actualisée", Toast.LENGTH_SHORT).show();
+            }
         }
-        return super.onOptionsItemSelected(item);
     }
     
     private void logout() {

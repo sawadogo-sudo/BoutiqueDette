@@ -3,14 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     
     <item
+        android:id="@+id/menu_refresh"
+        android:title="Actualiser"
+        android:icon="@drawable/ic_refresh" />
+    
+    <item
+        android:id="@+id/menu_profile"
+        android:title="Mon profil" />
+    
+    <item
         android:id="@+id/menu_settings"
-        android:icon="@drawable/ic_settings"
-        android:title="Paramètres"
-        app:showAsAction="ifRoom" />
+        android:title="Paramètres" />
     
     <item
         android:id="@+id/menu_logout"
-        android:title="Déconnexion"
-        app:showAsAction="never" />
+        android:title="Déconnexion" />
     
 </menu>

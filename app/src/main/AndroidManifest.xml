@@ -26,11 +26,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Main Activity -->
+        <!-- Main Activity (SANS ActionBar) -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BoutiqueDette.NoActionBar" />
 
         <!-- Clients Activity -->
         <activity
