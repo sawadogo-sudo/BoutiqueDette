@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">BoutiqueDette</string>
+    
+    <!-- Auth Activity -->
+    <string name="login_title">Connexion Boutiquier</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Mot de passe</string>
+    <string name="login_button">Se connecter</string>
+    
+    <!-- Main Activity -->
+    <string name="dashboard_title">Tableau de Bord</string>
+    <string name="total_clients">Clients totaux</string>
+    <string name="total_dettes">Total des dettes</string>
+    <string name="clients_button">Gérer les Clients</string>
+    <string name="top_debts">Clients les plus endettés</string>
+    
+    <!-- Clients Activity -->
+    <string name="clients_title">Liste des Clients</string>
+    <string name="add_client">Ajouter un client</string>
+    <string name="search_hint">Rechercher un client...</string>
+    <string name="no_clients">Aucun client trouvé</string>
+    
+    <!-- Add Client Activity -->
+    <string name="add_client_title">Nouveau Client</string>
+    <string name="nom_hint">Nom complet</string>
+    <string name="telephone_hint">Numéro de téléphone</string>
+    <string name="adresse_hint">Adresse (optionnelle)</string>
+    <string name="save_button">Enregistrer</string>
+    <string name="cancel_button">Annuler</string>
+    
+    <!-- Client Details -->
+    <string name="client_details">Détails du Client</string>
+    <string name="solde_restant">Solde restant</string>
+    <string name="add_dette">Ajouter une dette</string>
+    <string name="add_paiement">Ajouter un paiement</string>
+    <string name="historique_title">Historique</string>
+    
+    <!-- Messages -->
+    <string name="error_empty_fields">Veuillez remplir tous les champs obligatoires</string>
+    <string name="success_save">Enregistré avec succès</string>
+    <string name="error_save">Erreur lors de l\'enregistrement</string>
+</resources>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textNom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nom Client"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/textTelephone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Téléphone"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/textAdresse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Adresse"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/textSolde"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Solde: 0.00 CFA"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/buttonAddDette"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ajouter une dette"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/buttonAddPaiement"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ajouter un paiement"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/buttonHistorique"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Voir l'historique"/>
+
+</LinearLayout>
