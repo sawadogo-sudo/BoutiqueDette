@@ -1,26 +1,30 @@
 package bf.amido.sawadogo.boutiquedette;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
-import bf.amido.sawadogo.boutiquedette.api.ApiClient;
-import bf.amido.sawadogo.boutiquedette.api.ApiService;
-import bf.amido.sawadogo.boutiquedette.models.Client;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import java.util.List;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
+
+import bf.amido.sawadogo.boutiquedette.fragments.ClientsFragment;
+import bf.amido.sawadogo.boutiquedette.fragments.DashboardFragment;
+import bf.amido.sawadogo.boutiquedette.fragments.DettesFragment;
+import bf.amido.sawadogo.boutiquedette.fragments.HistoriqueFragment;
+import bf.amido.sawadogo.boutiquedette.fragments.PaiementFragment;
 
 public class MainActivity extends AppCompatActivity {
     
-    private CardView cardClients, cardDettes, cardPaiements, cardStats;
-    private TextView textTotalClients, textTotalDettes, textTopDebtors;
-    private ApiService apiService;
+    private BottomNavigationView bottomNavigationView;
+    private Toolbar toolbar;
     private SharedPreferences sharedPreferences;
     
     @Override
@@ -28,88 +32,87 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        initViews();
-        setupApi();
-        setupListeners();
-        loadDashboardData();
-    }
-    
-    private void initViews() {
-        cardClients = findViewById(R.id.cardClients);
-        cardDettes = findViewById(R.id.cardDettes);
-        cardPaiements = findViewById(R.id.cardPaiements);
-        cardStats = findViewById(R.id.cardStats);
-        textTotalClients = findViewById(R.id.textTotalClients);
-        textTotalDettes = findViewById(R.id.textTotalDettes);
-        textTopDebtors = findViewById(R.id.textTopDebtors);
-    }
-    
-    private void setupApi() {
-        apiService = ApiClient.getClient().create(ApiService.class);
         sharedPreferences = getSharedPreferences("boutique_prefs", MODE_PRIVATE);
-    }
-    
-    private void setupListeners() {
-        cardClients.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, ClientsActivity.class));
-            }
-        });
         
-        findViewById(R.id.buttonLogout).setOnClickListener(new View.OnClickListener() {
+        toolbar = findViewById(R.id.toolbar);
+        // SUPPRIMEZ CETTE LIGNE : setSupportActionBar(toolbar);
+        
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        
+        // Charger le fragment Dashboard par défaut
+        loadFragment(new DashboardFragment());
+        updateToolbarTitle("Tableau de Bord");
+        
+        // Gérer les clics sur la navigation
+        bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                logout();
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Fragment fragment = null;
+                String title = "Tableau de Bord";
+                
+                if (item.getItemId() == R.id.nav_clients) {
+                    fragment = new ClientsFragment();
+                    title = "Clients";
+                } else if (item.getItemId() == R.id.nav_dettes) {
+                    fragment = new DettesFragment();
+                    title = "Dettes";
+                } else if (item.getItemId() == R.id.nav_paiement) {
+                    fragment = new PaiementFragment();
+                    title = "Paiement";
+                } else if (item.getItemId() == R.id.nav_historique) {
+                    fragment = new HistoriqueFragment();
+                    title = "Historique";
+                }
+                
+                if (fragment != null) {
+                    loadFragment(fragment);
+                    updateToolbarTitle(title);
+                    return true;
+                }
+                
+                return false;
             }
         });
     }
     
-    private void loadDashboardData() {
-        // Récupérer le total des clients
-        Call<List<Client>> call = apiService.getAllClients();
-        call.enqueue(new Callback<List<Client>>() {
-            @Override
-            public void onResponse(Call<List<Client>> call, Response<List<Client>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    int totalClients = response.body().size();
-                    textTotalClients.setText(String.valueOf(totalClients));
-                    
-                    // Calculer le total des dettes
-                    double totalDettes = 0;
-                    for (Client client : response.body()) {
-                        totalDettes += client.getSolde();
-                    }
-                    textTotalDettes.setText(String.format("%.2f CFA", totalDettes));
-                    
-                    // Trouver les 3 clients les plus endettés
-                    response.body().sort((c1, c2) -> Double.compare(c2.getSolde(), c1.getSolde()));
-                    StringBuilder topDebtors = new StringBuilder();
-                    int limit = Math.min(3, response.body().size());
-                    for (int i = 0; i < limit; i++) {
-                        Client client = response.body().get(i);
-                        topDebtors.append(client.getNom())
-                                 .append(": ")
-                                 .append(String.format("%.2f CFA", client.getSolde()))
-                                 .append("\n");
-                    }
-                    textTopDebtors.setText(topDebtors.toString());
-                }
-            }
-            
-            @Override
-            public void onFailure(Call<List<Client>> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Erreur de chargement", Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager()
+            .beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .commit();
+    }
+    
+    private void updateToolbarTitle(String title) {
+        // Mettez à jour le titre directement sur le Toolbar
+        toolbar.setTitle(title);
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.menu_logout) {
+            logout();
+            return true;
+        } else if (item.getItemId() == R.id.menu_settings) {
+            Toast.makeText(this, "Paramètres", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
     
     private void logout() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
+        editor.putBoolean("is_logged_in", false);
+        editor.remove("user_email");
         editor.apply();
         
-        startActivity(new Intent(MainActivity.this, AuthActivity.class));
+        Intent intent = new Intent(this, AuthActivity.class);
+        startActivity(intent);
         finish();
     }
 }

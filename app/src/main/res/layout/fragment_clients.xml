@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="#F5F5F5">
+
+    <Button
+        android:id="@+id/btnGestionClients"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gérer les Clients"
+        android:background="#3F51B5"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="24dp"
+        android:elevation="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Accédez à la gestion complète des clients"
+        android:textSize="16sp"
+        android:textColor="#757575"
+        android:gravity="center"
+        android:padding="16dp" />
+
+</LinearLayout>
