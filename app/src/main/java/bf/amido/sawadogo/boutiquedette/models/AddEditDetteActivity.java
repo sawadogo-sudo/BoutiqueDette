@@ -1,4 +1,4 @@
-package bf.amido.sawadogo.boutiquedette; // Assurez-vous que ce n'est PAS dans models
+package bf.amido.sawadogo.boutiquedette; 
 
 import android.os.Bundle;
 import android.widget.ArrayAdapter;

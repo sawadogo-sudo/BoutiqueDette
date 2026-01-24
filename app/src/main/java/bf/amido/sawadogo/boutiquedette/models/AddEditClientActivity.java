@@ -18,7 +18,7 @@ public class AddEditClientActivity extends AppCompatActivity {
     
     private ApiHelper apiHelper;
     private String clientId;
-    private boolean isEditMode = false;
+    private boolean isEditMode = false; 
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {

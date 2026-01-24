@@ -18,6 +18,11 @@
     <color name="primary_color">@color/colorPrimary</color>
     <color name="secondary_color">@color/colorAccent</color>
     
+    <!-- Noms courts pour les layouts -->
+    <color name="primary">@color/colorPrimary</color>
+    <color name="secondary">@color/colorAccent</color>
+    <color name="gray">@color/gray_500</color>
+    
     <!-- Couleurs de texte -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
