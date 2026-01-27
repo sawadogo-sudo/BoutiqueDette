@@ -17,6 +17,10 @@ public class SupabaseConfig {
     public static final String BASE_URL = PROJECT_URL + "/rest/v1/";
     public static final String AUTH_URL = PROJECT_URL + "/auth/v1/";
     
+    // AJOUTÉ: Constantes pour ApiHelper
+    public static final String SUPABASE_URL = BASE_URL;
+    public static final String SUPABASE_ANON_KEY = PUBLISHABLE_KEY;
+    
     // ============ CONFIGURATION AUTH ============
     
     // Pour l'authentification
@@ -56,5 +60,18 @@ public class SupabaseConfig {
     
     public static String getTableUrl(String tableName) {
         return BASE_URL + tableName;
+    }
+    
+    // AJOUTÉ: Méthodes utilitaires pour la construction d'URL
+    public static String getClientsUrl() {
+        return BASE_URL + "clients";
+    }
+    
+    public static String getDettesUrl() {
+        return BASE_URL + "dettes";
+    }
+    
+    public static String getPaiementsUrl() {
+        return BASE_URL + "paiements";
     }
 }

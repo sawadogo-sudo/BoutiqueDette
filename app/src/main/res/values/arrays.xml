@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statut_dette_array">
+        <item>impayé</item>
+        <item>partiel</item>
+        <item>payé</item>
+    </string-array>
+
+    <string-array name="mode_paiement_array">
+        <item>espèces</item>
+        <item>mobile_money</item>
+        <item>carte</item>
+        <item>virement</item>
+    </string-array>
+</resources>

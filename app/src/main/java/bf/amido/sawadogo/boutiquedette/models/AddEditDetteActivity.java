@@ -10,7 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import bf.amido.sawadogo.boutiquedette.models.Dette;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.services.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -128,8 +128,19 @@ public class AddEditDetteActivity extends AppCompatActivity {
     }
     
     private void selectClientInSpinner(String clientId) {
+        if (clientId == null) return;
+        
+        // Convertir clientId en int pour la comparaison
+        int clientIdInt;
+        try {
+            clientIdInt = Integer.parseInt(clientId);
+        } catch (NumberFormatException e) {
+            return;
+        }
+        
         for (int i = 0; i < clientsList.size(); i++) {
-            if (clientsList.get(i).getId().equals(clientId)) {
+            // CORRECTION : Comparaison d'ints avec == au lieu de equals()
+            if (clientsList.get(i).getId() == clientIdInt) {
                 spinnerClient.setSelection(i + 1); // +1 pour l'élément "Sélectionner un client"
                 break;
             }
@@ -205,10 +216,17 @@ public class AddEditDetteActivity extends AppCompatActivity {
         
         // Récupérer l'ID du client sélectionné
         Client selectedClient = clientsList.get(selectedPosition - 1);
-        dette.setClientId(selectedClient.getId());
+        // CORRECTION : Conversion de int en String
+        dette.setClientId(String.valueOf(selectedClient.getId()));
         
         if (isEditMode && detteId != null) {
-            dette.setId(detteId);
+            // CORRECTION : Conversion de String en int
+            try {
+                dette.setId(Integer.parseInt(detteId));
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "ID de dette invalide", Toast.LENGTH_SHORT).show();
+                return;
+            }
             updateDetteInSupabase(dette);
         } else {
             createDetteInSupabase(dette);
@@ -281,7 +299,10 @@ public class AddEditDetteActivity extends AppCompatActivity {
         btnSave.setEnabled(false);
         btnSave.setText("Mise à jour...");
         
-        apiHelper.updateDette(dette.getId(), dette, new ApiHelper.SimpleCallback() {
+        // CORRECTION : Conversion de int en String pour l'API
+        String detteIdString = String.valueOf(dette.getId());
+        
+        apiHelper.updateDette(detteIdString, dette, new ApiHelper.SimpleCallback() {
             @Override
             public void onSuccess(String message) {
                 runOnUiThread(() -> {

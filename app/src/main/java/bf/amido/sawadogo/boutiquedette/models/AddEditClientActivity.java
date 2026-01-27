@@ -1,91 +1,99 @@
 package bf.amido.sawadogo.boutiquedette;
 
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.services.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
 
 public class AddEditClientActivity extends AppCompatActivity {
-    
-    private TextView tvTitle;
-    private EditText etNom, etPrenom, etTelephone, etEmail, etVille, etAdresse;
-    private Button btnSave, btnCancel;
+
+    private EditText editTextNom, editTextPrenom, editTextTelephone,
+            editTextEmail, editTextAdresse, editTextVille;
+    private Button buttonSaveClient, buttonCancel;
+    private ProgressBar progressBar;
     
     private ApiHelper apiHelper;
     private String clientId;
-    private boolean isEditMode = false; 
+    private boolean isEditMode = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_edit_client);
+        setContentView(R.layout.activity_add_client);
         
         apiHelper = new ApiHelper(this);
         
         initViews();
-        setupButtons();
+        setupListeners();
+        checkMode();
+    }
+    
+    private void initViews() {
+        editTextNom = findViewById(R.id.editTextNom);
+        editTextPrenom = findViewById(R.id.editTextPrenom);
+        editTextTelephone = findViewById(R.id.editTextTelephone);
+        editTextEmail = findViewById(R.id.editTextEmail);
+        editTextAdresse = findViewById(R.id.editTextAdresse);
+        editTextVille = findViewById(R.id.editTextVille);
         
-        // Vérifier le mode (ajout ou édition)
+        buttonSaveClient = findViewById(R.id.buttonSaveClient);
+        buttonCancel = findViewById(R.id.buttonCancel);
+        
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
+    }
+    
+    private void checkMode() {
         String mode = getIntent().getStringExtra("MODE");
         if ("EDIT".equals(mode)) {
             isEditMode = true;
             clientId = getIntent().getStringExtra("CLIENT_ID");
-            tvTitle.setText("Modifier Client");
+            setTitle("Modifier Client");
             loadClientData();
         } else {
-            tvTitle.setText("Nouveau Client");
+            setTitle("Nouveau Client");
         }
-    }
-    
-    private void initViews() {
-        tvTitle = findViewById(R.id.tvTitle);
-        etNom = findViewById(R.id.etNom);
-        etPrenom = findViewById(R.id.etPrenom);
-        etTelephone = findViewById(R.id.etTelephone);
-        etEmail = findViewById(R.id.etEmail);
-        etVille = findViewById(R.id.etVille);
-        etAdresse = findViewById(R.id.etAdresse);
-        btnSave = findViewById(R.id.btnSave);
-        btnCancel = findViewById(R.id.btnCancel);
-    }
-    
-    private void setupButtons() {
-        btnSave.setOnClickListener(v -> saveClient());
-        btnCancel.setOnClickListener(v -> finish());
     }
     
     private void loadClientData() {
-        // Si nous avons les données dans l'intent, les utiliser
         if (getIntent().hasExtra("CLIENT_NOM")) {
-            etNom.setText(getIntent().getStringExtra("CLIENT_NOM"));
-            etPrenom.setText(getIntent().getStringExtra("CLIENT_PRENOM"));
-            etTelephone.setText(getIntent().getStringExtra("CLIENT_TELEPHONE"));
-            etEmail.setText(getIntent().getStringExtra("CLIENT_EMAIL"));
-            etVille.setText(getIntent().getStringExtra("CLIENT_VILLE"));
-            etAdresse.setText(getIntent().getStringExtra("CLIENT_ADRESSE"));
+            editTextNom.setText(getIntent().getStringExtra("CLIENT_NOM"));
+            editTextPrenom.setText(getIntent().getStringExtra("CLIENT_PRENOM"));
+            editTextTelephone.setText(getIntent().getStringExtra("CLIENT_TELEPHONE"));
+            editTextEmail.setText(getIntent().getStringExtra("CLIENT_EMAIL"));
+            editTextVille.setText(getIntent().getStringExtra("CLIENT_VILLE"));
+            editTextAdresse.setText(getIntent().getStringExtra("CLIENT_ADRESSE"));
         } else if (clientId != null) {
-            // Sinon, charger depuis l'API
-            loadClientFromSupabase();
+            loadClientFromApi();
         }
     }
     
-    private void loadClientFromSupabase() {
+    private void loadClientFromApi() {
+        showProgress(true);
+        
+        // IMPORTANT: Le Client modèle doit avoir getId() qui retourne String
+        // ou nous devons adapter l'API
         apiHelper.getClientById(clientId, new ApiHelper.DataCallback<Client>() {
             @Override
             public void onSuccess(Client client) {
                 runOnUiThread(() -> {
+                    showProgress(false);
                     if (client != null) {
-                        etNom.setText(client.getNom());
-                        etPrenom.setText(client.getPrenom());
-                        etTelephone.setText(client.getTelephone());
-                        etEmail.setText(client.getEmail() != null ? client.getEmail() : "");
-                        etVille.setText(client.getVille() != null ? client.getVille() : "");
-                        etAdresse.setText(client.getAdresse() != null ? client.getAdresse() : "");
+                        editTextNom.setText(client.getNom());
+                        editTextPrenom.setText(client.getPrenom() != null ? client.getPrenom() : "");
+                        editTextTelephone.setText(client.getTelephone());
+                        editTextEmail.setText(client.getEmail() != null ? client.getEmail() : "");
+                        editTextVille.setText(client.getVille() != null ? client.getVille() : "");
+                        editTextAdresse.setText(client.getAdresse() != null ? client.getAdresse() : "");
+                    } else {
+                        Toast.makeText(AddEditClientActivity.this, 
+                            "Client non trouvé", Toast.LENGTH_SHORT).show();
+                        finish();
                     }
                 });
             }
@@ -93,68 +101,114 @@ public class AddEditClientActivity extends AppCompatActivity {
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
+                    showProgress(false);
                     Toast.makeText(AddEditClientActivity.this, 
                         "Erreur de chargement: " + error, Toast.LENGTH_SHORT).show();
+                    finish();
                 });
             }
         });
     }
     
-    private void saveClient() {
-        if (!validateForm()) {
-            return;
-        }
-        
-        Client client = new Client();
-        client.setNom(etNom.getText().toString().trim());
-        client.setPrenom(etPrenom.getText().toString().trim());
-        client.setTelephone(etTelephone.getText().toString().trim());
-        client.setEmail(etEmail.getText().toString().trim());
-        client.setVille(etVille.getText().toString().trim());
-        client.setAdresse(etAdresse.getText().toString().trim());
-        
-        if (isEditMode) {
-            client.setId(clientId);
-            updateClientInSupabase(client);
-        } else {
-            createClientInSupabase(client);
-        }
+    private void setupListeners() {
+        buttonSaveClient.setOnClickListener(v -> {
+            if (validateForm()) {
+                saveClient();
+            }
+        });
+
+        buttonCancel.setOnClickListener(v -> {
+            finish();
+        });
     }
     
     private boolean validateForm() {
         boolean isValid = true;
         
-        if (etNom.getText().toString().trim().isEmpty()) {
-            etNom.setError("Le nom est obligatoire");
-            etNom.requestFocus();
+        editTextNom.setError(null);
+        editTextTelephone.setError(null);
+        editTextEmail.setError(null);
+        
+        String nom = editTextNom.getText().toString().trim();
+        if (nom.isEmpty()) {
+            editTextNom.setError("Le nom est requis");
+            editTextNom.requestFocus();
+            isValid = false;
+        }
+
+        String telephone = editTextTelephone.getText().toString().trim();
+        if (telephone.isEmpty()) {
+            editTextTelephone.setError("Le téléphone est requis");
+            editTextTelephone.requestFocus();
+            isValid = false;
+        } else if (!isValidPhone(telephone)) {
+            editTextTelephone.setError("Format invalide (ex: 70123456)");
+            editTextTelephone.requestFocus();
             isValid = false;
         }
         
-        if (etPrenom.getText().toString().trim().isEmpty()) {
-            etPrenom.setError("Le prénom est obligatoire");
-            etPrenom.requestFocus();
-            isValid = false;
-        }
-        
-        if (etTelephone.getText().toString().trim().isEmpty()) {
-            etTelephone.setError("Le téléphone est obligatoire");
-            etTelephone.requestFocus();
+        String email = editTextEmail.getText().toString().trim();
+        if (!email.isEmpty() && !isValidEmail(email)) {
+            editTextEmail.setError("Format d'email invalide");
+            editTextEmail.requestFocus();
             isValid = false;
         }
         
         return isValid;
     }
     
-    private void createClientInSupabase(Client client) {
-        btnSave.setEnabled(false);
-        btnSave.setText("Enregistrement...");
+    private boolean isValidPhone(String phone) {
+        // Accepte: 70123456, 76123456
+        String phoneRegex = "^[67]\\d{7}$";
+        return phone.replaceAll("\\s+", "").matches(phoneRegex);
+    }
+    
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return email.matches(emailRegex);
+    }
+    
+    private void saveClient() {
+        showProgress(true);
+        buttonSaveClient.setEnabled(false);
         
+        Client client = new Client();
+        client.setNom(editTextNom.getText().toString().trim());
+        client.setPrenom(editTextPrenom.getText().toString().trim());
+        client.setTelephone(editTextTelephone.getText().toString().trim());
+        
+        String email = editTextEmail.getText().toString().trim();
+        client.setEmail(email.isEmpty() ? null : email);
+        
+        String ville = editTextVille.getText().toString().trim();
+        client.setVille(ville.isEmpty() ? null : ville);
+        
+        String adresse = editTextAdresse.getText().toString().trim();
+        client.setAdresse(adresse.isEmpty() ? null : adresse);
+        
+        if (isEditMode && clientId != null) {
+            // CORRECTION : Le modèle Client doit avoir setId(String) ou on doit convertir
+            try {
+                // Si Client a setId(int)
+                client.setId(Integer.parseInt(clientId));
+                updateClientInApi(client);
+            } catch (NumberFormatException e) {
+                // Si Client a setId(String)
+                // client.setId(clientId);
+                updateClientInApi(client);
+            }
+        } else {
+            createClientInApi(client);
+        }
+    }
+    
+    private void createClientInApi(Client client) {
         apiHelper.createClient(client, new ApiHelper.DataCallback<Client>() {
             @Override
             public void onSuccess(Client createdClient) {
                 runOnUiThread(() -> {
-                    btnSave.setEnabled(true);
-                    btnSave.setText("Enregistrer");
+                    showProgress(false);
+                    buttonSaveClient.setEnabled(true);
                     
                     Toast.makeText(AddEditClientActivity.this, 
                         "Client créé avec succès", Toast.LENGTH_SHORT).show();
@@ -166,8 +220,8 @@ public class AddEditClientActivity extends AppCompatActivity {
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
-                    btnSave.setEnabled(true);
-                    btnSave.setText("Enregistrer");
+                    showProgress(false);
+                    buttonSaveClient.setEnabled(true);
                     
                     Toast.makeText(AddEditClientActivity.this, 
                         "Erreur: " + error, Toast.LENGTH_LONG).show();
@@ -176,19 +230,22 @@ public class AddEditClientActivity extends AppCompatActivity {
         });
     }
     
-    private void updateClientInSupabase(Client client) {
-        btnSave.setEnabled(false);
-        btnSave.setText("Mise à jour...");
+    private void updateClientInApi(Client client) {
+        // CORRECTION : L'API attend un String pour l'ID
+        String idToUpdate = clientId;
+        if (client.getId() != 0) {
+            idToUpdate = String.valueOf(client.getId());
+        }
         
-        apiHelper.updateClient(client.getId(), client, new ApiHelper.SimpleCallback() {
+        apiHelper.updateClient(idToUpdate, client, new ApiHelper.SimpleCallback() {
             @Override
             public void onSuccess(String message) {
                 runOnUiThread(() -> {
-                    btnSave.setEnabled(true);
-                    btnSave.setText("Enregistrer");
+                    showProgress(false);
+                    buttonSaveClient.setEnabled(true);
                     
                     Toast.makeText(AddEditClientActivity.this, 
-                        "Client mis à jour avec succès", Toast.LENGTH_SHORT).show();
+                        "Client mis à jour", Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
                 });
@@ -197,13 +254,22 @@ public class AddEditClientActivity extends AppCompatActivity {
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
-                    btnSave.setEnabled(true);
-                    btnSave.setText("Enregistrer");
+                    showProgress(false);
+                    buttonSaveClient.setEnabled(true);
                     
                     Toast.makeText(AddEditClientActivity.this, 
                         "Erreur: " + error, Toast.LENGTH_LONG).show();
                 });
             }
         });
+    }
+    
+    private void showProgress(boolean show) {
+        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (show) {
+            buttonSaveClient.setText(isEditMode ? "Mise à jour..." : "Enregistrement...");
+        } else {
+            buttonSaveClient.setText(isEditMode ? "Modifier" : "Enregistrer");
+        }
     }
 }

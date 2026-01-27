@@ -1,30 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="16dp"
+    android:background="#F5F5F5">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ajouter un Paiement"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp"/>
-
-    <EditText
-        android:id="@+id/editTextMontant"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Montant (CFA)"
-        android:inputType="numberDecimal"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/buttonSave"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Enregistrer le paiement"/>
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
 
-</LinearLayout>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nouveau Paiement"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Client Info -->
+                <TextView
+                    android:id="@+id/tvClientInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Client: "
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Dette Info -->
+                <TextView
+                    android:id="@+id/tvDetteInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Dette: "
+                    android:textSize="14sp"
+                    android:textColor="#757575"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Montant -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Montant (FCFA) *"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="4dp" />
+                
+                <EditText
+                    android:id="@+id/etMontant"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="0.00"
+                    android:inputType="numberDecimal"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Date de paiement -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Date du paiement"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="4dp" />
+                
+                <DatePicker
+                    android:id="@+id/datePickerPaiement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:calendarViewShown="false"
+                    android:datePickerMode="spinner" />
+
+                <!-- Mode de paiement -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Mode de paiement"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="4dp" />
+                
+                <Spinner
+                    android:id="@+id/spinnerModePaiement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Référence -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Référence (optionnel)"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="4dp" />
+                
+                <EditText
+                    android:id="@+id/etReference"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Numéro de transaction"
+                    android:inputType="text"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Description -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Description (optionnel)"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="4dp" />
+                
+                <EditText
+                    android:id="@+id/etDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Notes supplémentaires"
+                    android:inputType="textMultiLine"
+                    android:minLines="2"
+                    android:maxLines="3"
+                    android:layout_marginBottom="24dp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Boutons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Annuler"
+                android:textColor="#FFFFFF"
+                android:background="#9E9E9E" />
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Enregistrer"
+                android:textColor="#FFFFFF"
+                android:background="#3F51B5" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

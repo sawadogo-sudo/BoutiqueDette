@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import bf.amido.sawadogo.boutiquedette.adapters.ClientAdapter;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.services.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class ClientsActivity extends AppCompatActivity {
         
         // Initialiser les vues
         initViews();
-        
+         
         // Initialiser la liste des clients
         clientList = new ArrayList<>();
         clientListFull = new ArrayList<>();
@@ -88,7 +88,7 @@ public class ClientsActivity extends AppCompatActivity {
     }
     
     private void setupRecyclerView() {
-        clientAdapter = new ClientAdapter(clientList, client -> {
+        clientAdapter = new ClientAdapter(this, clientList, client -> { 
             // Afficher le menu d'options pour le client
             showClientOptionsDialog(client);
         });
@@ -246,14 +246,14 @@ public class ClientsActivity extends AppCompatActivity {
     
     private void openClientDetails(Client client) {
         Intent intent = new Intent(this, ClientDetailsActivity.class);
-        intent.putExtra("CLIENT_ID", client.getId());
+        intent.putExtra("CLIENT_ID", String.valueOf(client.getId())); // Conversion int → String
         startActivity(intent);
     }
     
     private void editClient(Client client) {
         Intent intent = new Intent(this, AddEditClientActivity.class);
         intent.putExtra("MODE", "EDIT");
-        intent.putExtra("CLIENT_ID", client.getId());
+        intent.putExtra("CLIENT_ID", String.valueOf(client.getId())); // Conversion int → String
         intent.putExtra("CLIENT_NOM", client.getNom());
         intent.putExtra("CLIENT_PRENOM", client.getPrenom());
         intent.putExtra("CLIENT_TELEPHONE", client.getTelephone());
@@ -282,7 +282,8 @@ public class ClientsActivity extends AppCompatActivity {
     }
     
     private void deleteClientFromSupabase(Client client) {
-        apiHelper.deleteClient(client.getId(), new ApiHelper.SimpleCallback() {
+        // CORRECTION : Conversion de int en String pour l'API
+        apiHelper.deleteClient(String.valueOf(client.getId()), new ApiHelper.SimpleCallback() {
             @Override
             public void onSuccess(String message) {
                 runOnUiThread(new Runnable() {
@@ -323,7 +324,7 @@ public class ClientsActivity extends AppCompatActivity {
     
     private void addDetteForClient(Client client) {
         Intent intent = new Intent(this, AddEditDetteActivity.class);
-        intent.putExtra("CLIENT_ID", client.getId());
+        intent.putExtra("CLIENT_ID", String.valueOf(client.getId())); // Conversion int → String
         intent.putExtra("CLIENT_NOM", client.getNom() + " " + client.getPrenom());
         startActivity(intent);
     }

@@ -39,11 +39,12 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Add Client Activity -->
+        <!-- AddEditClient Activity (REMPLACE AddClientActivity) -->
         <activity
-            android:name=".AddClientActivity"
+            android:name=".AddEditClientActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <!-- Client Details Activity -->
         <activity
@@ -63,18 +64,19 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- AddEditDette Activity (NOUVELLE) -->
+        <!-- AddEditDette Activity -->
         <activity
             android:name=".AddEditDetteActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
-            <!-- Ajoutez cette activité dans le <application> -->
+
+        <!-- Register Activity -->
         <activity
             android:name=".RegisterActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
-
+       
     </application>
 
 </manifest>

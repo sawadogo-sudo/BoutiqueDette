@@ -21,7 +21,7 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
         
-        // Utiliser SimpleAuthService (dans le dossier api)
+        // Utiliser SimpleAuthService pour l'inscription
         authService = new SimpleAuthService(this);
         
         initViews();

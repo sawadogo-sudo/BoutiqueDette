@@ -3,27 +3,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center"
-    android:background="#F5F5F5">
+    android:padding="16dp">
 
     <Button
-        android:id="@+id/btnGestionClients"
+        android:id="@+id/btnAddClient"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Gérer les Clients"
-        android:background="#3F51B5"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="24dp"
-        android:elevation="4dp" />
+        android:text="Ajouter Client"
+        android:layout_marginBottom="16dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Accédez à la gestion complète des clients"
-        android:textSize="16sp"
-        android:textColor="#757575"
-        android:gravity="center"
-        android:padding="16dp" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewClients"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
 </LinearLayout>
