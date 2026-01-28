@@ -28,7 +28,7 @@ import bf.amido.sawadogo.boutiquedette.models.Client;
 import bf.amido.sawadogo.boutiquedette.models.Dette;
 import bf.amido.sawadogo.boutiquedette.models.HistoriqueItem;
 import bf.amido.sawadogo.boutiquedette.models.Paiement;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 
 public class HistoriqueFragment extends Fragment {
     

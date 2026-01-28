@@ -20,7 +20,7 @@ import java.util.Locale;
 import bf.amido.sawadogo.boutiquedette.models.Dette;
 import bf.amido.sawadogo.boutiquedette.models.Client;
 import bf.amido.sawadogo.boutiquedette.models.Paiement;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 
 public class AddPaiementActivity extends AppCompatActivity {
     
@@ -71,7 +71,6 @@ public class AddPaiementActivity extends AppCompatActivity {
     }
     
     private void initViews() {
-        // IDs corrigés - utilisez ceux qui existent dans votre layout
         tvClientInfo = findViewById(R.id.tvClientInfo);
         tvDetteInfo = findViewById(R.id.tvDetteInfo);
         
@@ -90,7 +89,6 @@ public class AddPaiementActivity extends AppCompatActivity {
         progressBar.setVisibility(View.GONE);
         
         // Configurer le spinner des modes de paiement
-        // Créez d'abord le tableau dans res/values/arrays.xml
         String[] modesPaiement = {"Espèces", "Mobile Money", "Carte Bancaire", "Virement"};
         ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(
             this,
@@ -99,6 +97,38 @@ public class AddPaiementActivity extends AppCompatActivity {
         );
         modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerModePaiement.setAdapter(modeAdapter);
+    }
+    
+    private void setupListeners() {
+        btnSave.setOnClickListener(v -> {
+            if (validateForm()) {
+                savePaiement();
+            }
+        });
+        
+        btnCancel.setOnClickListener(v -> {
+            finish();
+        });
+        
+        // Limiter le montant au maximum possible
+        etMontant.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                String montantStr = etMontant.getText().toString().trim();
+                if (!montantStr.isEmpty()) {
+                    try {
+                        double montant = Double.parseDouble(montantStr.replace(",", "."));
+                        if (montant > detteRestante) {
+                            etMontant.setText(String.format(Locale.FRANCE, "%.0f", detteRestante));
+                            Toast.makeText(this, 
+                                "Montant ajusté au maximum possible", 
+                                Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (NumberFormatException e) {
+                        // Ignorer
+                    }
+                }
+            }
+        });
     }
     
     private void loadClientAndDette() {
@@ -199,51 +229,30 @@ public class AddPaiementActivity extends AppCompatActivity {
             if (client.getPrenom() != null && !client.getPrenom().isEmpty()) {
                 clientInfo += " " + client.getPrenom();
             }
-            clientInfo += " - " + client.getTelephone();
+            if (client.getTelephone() != null && !client.getTelephone().isEmpty()) {
+                clientInfo += " - " + client.getTelephone();
+            }
             tvClientInfo.setText(clientInfo);
         }
     }
     
     private void updateDetteInfo() {
-        String detteInfo = String.format(Locale.FRANCE,
-            "Dette: %,.0f FCFA | Reste à payer: %,.0f FCFA",
-            detteMontant, detteRestante);
-        tvDetteInfo.setText(detteInfo);
-        
-        // Définir le montant maximum possible
-        etMontant.setHint(String.format(Locale.FRANCE, "Max: %,.0f FCFA", detteRestante));
-    }
-    
-    private void setupListeners() {
-        btnSave.setOnClickListener(v -> {
-            if (validateForm()) {
-                savePaiement();
+        if (dette != null) {
+            String detteInfo = String.format(Locale.FRANCE,
+                "Montant total: %,.0f FCFA\nReste à payer: %,.0f FCFA",
+                detteMontant, detteRestante);
+            tvDetteInfo.setText(detteInfo);
+            
+            // Définir le montant maximum possible comme placeholder
+            etMontant.setHint(String.format(Locale.FRANCE, "Max: %,.0f FCFA", detteRestante));
+            
+            // Si la dette est déjà payée, désactiver le formulaire
+            if (detteRestante <= 0) {
+                etMontant.setEnabled(false);
+                btnSave.setEnabled(false);
+                Toast.makeText(this, "Cette dette est déjà entièrement payée", Toast.LENGTH_LONG).show();
             }
-        });
-        
-        btnCancel.setOnClickListener(v -> {
-            finish();
-        });
-        
-        // Limiter le montant au maximum possible
-        etMontant.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                String montantStr = etMontant.getText().toString().trim();
-                if (!montantStr.isEmpty()) {
-                    try {
-                        double montant = Double.parseDouble(montantStr);
-                        if (montant > detteRestante) {
-                            etMontant.setText(String.valueOf(detteRestante));
-                            Toast.makeText(this, 
-                                "Montant ajusté au maximum possible", 
-                                Toast.LENGTH_SHORT).show();
-                        }
-                    } catch (NumberFormatException e) {
-                        // Ignorer
-                    }
-                }
-            }
-        });
+        }
     }
     
     private boolean validateForm() {
@@ -257,7 +266,10 @@ public class AddPaiementActivity extends AppCompatActivity {
             isValid = false;
         } else {
             try {
+                // Gérer les virgules pour les nombres français
+                montantStr = montantStr.replace(",", ".");
                 double montant = Double.parseDouble(montantStr);
+                
                 if (montant <= 0) {
                     etMontant.setError("Le montant doit être supérieur à 0");
                     etMontant.requestFocus();
@@ -269,7 +281,7 @@ public class AddPaiementActivity extends AppCompatActivity {
                     isValid = false;
                 }
             } catch (NumberFormatException e) {
-                etMontant.setError("Montant invalide");
+                etMontant.setError("Montant invalide (ex: 10000 ou 10000,50)");
                 etMontant.requestFocus();
                 isValid = false;
             }
@@ -282,32 +294,38 @@ public class AddPaiementActivity extends AppCompatActivity {
         showProgress(true);
         btnSave.setEnabled(false);
         
-        Paiement paiement = new Paiement();
-        
-        // Informations obligatoires
-        paiement.setDetteId(detteId);
-        paiement.setClientId(clientId);
-        
-        // Récupérer l'ID utilisateur
-        String userId = apiHelper.getCurrentUserId();
-        if (userId == null || userId.isEmpty()) {
-            Toast.makeText(this, "Utilisateur non connecté", Toast.LENGTH_SHORT).show();
-            showProgress(false);
-            btnSave.setEnabled(true);
-            return;
-        }
-        paiement.setUserId(userId);
-        
-        // Montant
+        // Vérifier d'abord si le montant est valide
+        String montantStr = etMontant.getText().toString().trim();
+        double montant;
         try {
-            double montant = Double.parseDouble(etMontant.getText().toString().trim());
-            paiement.setMontant(montant);
+            montantStr = montantStr.replace(",", ".");
+            montant = Double.parseDouble(montantStr);
         } catch (NumberFormatException e) {
             Toast.makeText(this, "Montant invalide", Toast.LENGTH_SHORT).show();
             showProgress(false);
             btnSave.setEnabled(true);
             return;
         }
+        
+        // Vérifier que le montant n'est pas trop élevé
+        if (montant > detteRestante) {
+            Toast.makeText(this, 
+                String.format(Locale.FRANCE, "Le montant ne peut pas dépasser %,.0f FCFA", detteRestante), 
+                Toast.LENGTH_LONG).show();
+            showProgress(false);
+            btnSave.setEnabled(true);
+            return;
+        }
+        
+        // Créer l'objet Paiement
+        Paiement paiement = new Paiement();
+        paiement.setDetteId(detteId);
+        paiement.setClientId(clientId);
+        paiement.setMontant(montant);
+        
+        // Récupérer l'ID utilisateur
+        String userId = apiHelper.getCurrentUserId();
+        paiement.setUserId(userId);
         
         // Date de paiement
         int day = datePickerPaiement.getDayOfMonth();
@@ -319,8 +337,12 @@ public class AddPaiementActivity extends AppCompatActivity {
         paiement.setDatePaiement(sdf.format(cal.getTime()));
         
         // Mode de paiement
-        String modePaiement = spinnerModePaiement.getSelectedItem().toString();
-        paiement.setModePaiement(modePaiement);
+        if (spinnerModePaiement.getSelectedItem() != null) {
+            String modePaiement = spinnerModePaiement.getSelectedItem().toString();
+            paiement.setModePaiement(modePaiement);
+        } else {
+            paiement.setModePaiement("Espèces");
+        }
         
         // Référence (optionnel)
         String reference = etReference.getText().toString().trim();
@@ -339,11 +361,8 @@ public class AddPaiementActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Paiement createdPaiement) {
                 runOnUiThread(() -> {
-                    showProgress(false);
-                    btnSave.setEnabled(true);
-                    
                     // Mettre à jour le statut de la dette si nécessaire
-                    updateDetteStatus(paiement.getMontant());
+                    updateDetteStatus(montant);
                 });
             }
             
@@ -354,7 +373,7 @@ public class AddPaiementActivity extends AppCompatActivity {
                     btnSave.setEnabled(true);
                     
                     Toast.makeText(AddPaiementActivity.this, 
-                        "Erreur: " + error, 
+                        "Erreur lors de l'enregistrement: " + error, 
                         Toast.LENGTH_LONG).show();
                 });
             }
@@ -364,7 +383,8 @@ public class AddPaiementActivity extends AppCompatActivity {
     private void updateDetteStatus(double montantPaiement) {
         double nouveauTotalPaiements = (detteMontant - detteRestante) + montantPaiement;
         
-        String nouveauStatut = "impayé";
+        String nouveauStatut = "en_cours"; // Par défaut
+        
         if (nouveauTotalPaiements >= detteMontant) {
             nouveauStatut = "payé";
         } else if (nouveauTotalPaiements > 0) {
@@ -376,6 +396,9 @@ public class AddPaiementActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String message) {
                 runOnUiThread(() -> {
+                    showProgress(false);
+                    btnSave.setEnabled(true);
+                    
                     Toast.makeText(AddPaiementActivity.this, 
                         "Paiement enregistré avec succès", 
                         Toast.LENGTH_SHORT).show();
@@ -388,6 +411,9 @@ public class AddPaiementActivity extends AppCompatActivity {
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
+                    showProgress(false);
+                    btnSave.setEnabled(true);
+                    
                     // Le paiement a été enregistré, mais la mise à jour du statut a échoué
                     Toast.makeText(AddPaiementActivity.this, 
                         "Paiement enregistré, mais erreur mise à jour statut: " + error, 
@@ -402,6 +428,12 @@ public class AddPaiementActivity extends AppCompatActivity {
     
     private void showProgress(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        btnSave.setText(show ? "Enregistrement..." : "Enregistrer");
+        if (show) {
+            btnSave.setText("Enregistrement...");
+            btnSave.setEnabled(false);
+        } else {
+            btnSave.setText("Enregistrer");
+            btnSave.setEnabled(true);
+        }
     }
 }

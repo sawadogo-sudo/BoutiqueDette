@@ -1,17 +1,21 @@
-package bf.amido.sawadogo.boutiquedette.api;
+package bf.amido.sawadogo.boutiquedette.adapters.api;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import bf.amido.sawadogo.boutiquedette.models.Client;
 import bf.amido.sawadogo.boutiquedette.models.Dette;
@@ -37,9 +41,13 @@ public class ApiHelper {
     public ApiHelper(Context context) {
         this.context = context;
         this.okHttpClient = new OkHttpClient();
-        this.gson = new Gson();
         
-        // Configuration Supabase - IMPORTANT: Vérifiez ces valeurs
+        // Configurer Gson pour être plus tolérant
+        this.gson = new GsonBuilder()
+            .setLenient()
+            .create();
+        
+        // Configuration Supabase
         this.baseUrl = "https://rcsqmtihjrdpaxwzejle.supabase.co/rest/v1/";
         this.supabaseKey = "sb_publishable_Ljtlgo608Ij4NKJaGPpJwg_WaKPrKdJ";
         
@@ -331,7 +339,6 @@ public class ApiHelper {
                 return;
             }
             
-            // CORRECTION: Validation du montant
             if (dette.getMontant() <= 0) {
                 callback.onError("Le montant doit être supérieur à 0");
                 return;
@@ -339,23 +346,18 @@ public class ApiHelper {
             
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("client_id", dette.getClientId());
-            
-            // CORRECTION: S'assurer que le montant est bien un nombre
             jsonObject.addProperty("montant", dette.getMontant());
-            
             jsonObject.addProperty("user_id", getCurrentUserId());
             
             if (dette.getDescription() != null && !dette.getDescription().trim().isEmpty()) {
                 jsonObject.addProperty("description", dette.getDescription().trim());
             }
             
-            // CORRECTION: Gestion des dates
             if (dette.getDateDette() != null && !dette.getDateDette().trim().isEmpty()) {
                 jsonObject.addProperty("date_dette", dette.getDateDette().trim());
             } else {
-                // Date par défaut: aujourd'hui au format ISO
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-                String today = sdf.format(new java.util.Date());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String today = sdf.format(new Date());
                 jsonObject.addProperty("date_dette", today);
             }
             
@@ -408,7 +410,6 @@ public class ApiHelper {
                 jsonObject.addProperty("client_id", dette.getClientId());
             }
             
-            // CORRECTION: Validation du montant
             if (dette.getMontant() > 0) {
                 jsonObject.addProperty("montant", dette.getMontant());
             }
@@ -549,7 +550,6 @@ public class ApiHelper {
                 return;
             }
             
-            // CORRECTION: Validation du montant
             if (paiement.getMontant() <= 0) {
                 callback.onError("Le montant doit être supérieur à 0");
                 return;
@@ -559,17 +559,13 @@ public class ApiHelper {
             jsonObject.addProperty("dette_id", paiement.getDetteId());
             jsonObject.addProperty("client_id", paiement.getClientId());
             jsonObject.addProperty("user_id", getCurrentUserId());
-            
-            // CORRECTION: S'assurer que le montant est bien un nombre
             jsonObject.addProperty("montant", paiement.getMontant());
             
-            // CORRECTION: Gestion des dates
             if (paiement.getDatePaiement() != null && !paiement.getDatePaiement().trim().isEmpty()) {
                 jsonObject.addProperty("date_paiement", paiement.getDatePaiement().trim());
             } else {
-                // Date par défaut: aujourd'hui au format ISO
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-                String today = sdf.format(new java.util.Date());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String today = sdf.format(new Date());
                 jsonObject.addProperty("date_paiement", today);
             }
             
@@ -638,29 +634,46 @@ public class ApiHelper {
                     
                     Log.d(TAG, "Réponse API " + request.url() + ": " + response.code());
                     
-                    // CORRECTION: Log détaillé pour débogage
                     String logBody = responseBody.length() > 500 ? 
                         responseBody.substring(0, 500) + "..." : responseBody;
-                    Log.d(TAG, "Corps de la réponse: " + logBody);
+                    Log.d(TAG, "Corps réponse: " + logBody);
                     
                     if (response.isSuccessful()) {
                         try {
-                            // CORRECTION: Gestion améliorée du parsing JSON
-                            if (responseBody == null || responseBody.equals("null") || responseBody.trim().isEmpty()) {
-                                callback.onError("Réponse vide du serveur");
+                            if (responseBody == null || responseBody.equals("null") || 
+                                responseBody.trim().isEmpty()) {
+                                
+                                if (type.toString().contains("List")) {
+                                    callback.onSuccess((T) new ArrayList<>());
+                                } else {
+                                    callback.onError("Réponse vide du serveur");
+                                }
+                                return;
+                            }
+                            
+                            if (responseBody.trim().equals("[]")) {
+                                if (type.toString().contains("List")) {
+                                    callback.onSuccess((T) new ArrayList<>());
+                                } else {
+                                    callback.onError("Aucun élément trouvé");
+                                }
                                 return;
                             }
                             
                             T data = gson.fromJson(responseBody, type);
                             callback.onSuccess(data);
+                            
                         } catch (JsonSyntaxException e) {
                             Log.e(TAG, "Erreur parsing JSON: " + e.getMessage());
                             Log.e(TAG, "JSON problématique: " + responseBody);
-                            callback.onError("Erreur format données: " + e.getMessage());
+                            callback.onError("Erreur format données JSON: " + e.getMessage());
                         } catch (NumberFormatException e) {
                             Log.e(TAG, "Erreur format nombre: " + e.getMessage());
                             Log.e(TAG, "Données problématiques: " + responseBody);
-                            callback.onError("Erreur format numérique dans la réponse");
+                            callback.onError("Erreur format numérique: " + e.getMessage());
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur inattendue lors du parsing: " + e.getMessage());
+                            callback.onError("Erreur inattendue: " + e.getMessage());
                         }
                     } else {
                         String errorMsg = parseSupabaseError(responseBody, response.code());
@@ -670,7 +683,7 @@ public class ApiHelper {
                     Log.e(TAG, "Erreur traitement réponse: " + e.getMessage(), e);
                     callback.onError("Erreur traitement: " + e.getMessage());
                 } finally {
-                    if (response.body() != null) {
+                    if (response != null && response.body() != null) {
                         response.body().close();
                     }
                 }
@@ -746,28 +759,27 @@ public class ApiHelper {
                 return "Réponse vide (" + statusCode + ")";
             }
             
-            // Essayer de parser comme JSON
-            JsonObject json = gson.fromJson(responseBody, JsonObject.class);
-            
-            if (json.has("message")) {
-                return json.get("message").getAsString();
-            }
-            if (json.has("error")) {
-                return json.get("error").getAsString();
-            }
-            if (json.has("details")) {
-                return json.get("details").getAsString();
+            try {
+                JsonObject json = gson.fromJson(responseBody, JsonObject.class);
+                
+                if (json.has("message")) {
+                    return json.get("message").getAsString();
+                }
+                if (json.has("error")) {
+                    return json.get("error").getAsString();
+                }
+                if (json.has("details")) {
+                    return json.get("details").getAsString();
+                }
+            } catch (Exception e) {
+                // Si pas du JSON valide, continuer
             }
             
             return "Erreur " + statusCode + ": " + 
                    (responseBody.length() > 100 ? responseBody.substring(0, 100) + "..." : responseBody);
             
-        } catch (JsonSyntaxException e) {
-            // Si pas du JSON, retourner le texte brut
-            return "Erreur " + statusCode + ": " + 
-                   (responseBody.length() > 100 ? responseBody.substring(0, 100) + "..." : responseBody);
-        } catch (NumberFormatException e) {
-            return "Erreur format dans la réponse: " + e.getMessage();
+        } catch (Exception e) {
+            return "Erreur " + statusCode + ": " + e.getMessage();
         }
     }
     
@@ -783,7 +795,6 @@ public class ApiHelper {
         void onError(String error);
     }
     
-    // Méthode utilitaire pour récupérer l'ID utilisateur
     public String getCurrentUserId() {
         String userId = "default_user";
         try {
@@ -797,15 +808,26 @@ public class ApiHelper {
         return userId;
     }
     
-    // CORRECTION: Méthode utilitaire pour tester les conversions de montant
-    public static double parseMontant(String montantStr) {
+    public static double safeParseDouble(String montantStr) {
+        return safeParseDouble(montantStr, 0.0);
+    }
+    
+    public static double safeParseDouble(String montantStr, double defaultValue) {
+        if (montantStr == null || montantStr.trim().isEmpty()) {
+            return defaultValue;
+        }
         try {
-            // Remplacer les virgules par des points pour les nombres français
             String cleaned = montantStr.replace(',', '.').trim();
+            cleaned = cleaned.replaceAll("[^\\d.-]", "");
+            
+            if (cleaned.isEmpty()) {
+                return defaultValue;
+            }
+            
             return Double.parseDouble(cleaned);
         } catch (NumberFormatException e) {
-            Log.e(TAG, "Erreur conversion montant: " + montantStr);
-            return 0.0;
+            Log.e(TAG, "Erreur conversion montant: '" + montantStr + "'");
+            return defaultValue;
         }
     }
 }

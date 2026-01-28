@@ -1,65 +1,170 @@
 package bf.amido.sawadogo.boutiquedette.models;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Paiement {
-    private int id;
-    private String clientName;
-    private double montant;
-    private String date;
-    private String methode;
-    private String reference;
+    @SerializedName("id")
+    private String id; // Changer de int à String
+    
+    @SerializedName("dette_id")
     private String detteId;
-    private String clientId;
-    private String userId;
+    
+    @SerializedName("montant")
+    private double montant;
+    
+    @SerializedName("date_paiement")
     private String datePaiement;
+    
+    @SerializedName("mode_paiement")
     private String modePaiement;
+    
+    @SerializedName("description")
     private String description;
+    
+    @SerializedName("reference")
+    private String reference;
+    
+    @SerializedName("user_id")
+    private String userId;
+    
+    @SerializedName("created_at")
+    private String createdAt;
+    
+    // Champs calculés ou non persistés
+    private String clientName;
+    private String clientId;
     
     public Paiement() {}
     
-    public Paiement(int id, String clientName, double montant, String date, String methode, String reference) {
+    // Constructeur simplifié
+    public Paiement(String id, String clientName, double montant, String date, String methode, String reference) {
         this.id = id;
         this.clientName = clientName;
         this.montant = montant;
-        this.date = date;
-        this.methode = methode;
+        this.datePaiement = date;
+        this.modePaiement = methode;
         this.reference = reference;
     }
     
     // Getters et setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public String getId() { 
+        return id != null ? id : ""; 
+    }
     
-    public String getClientName() { return clientName; }
-    public void setClientName(String clientName) { this.clientName = clientName; }
+    public void setId(String id) { 
+        this.id = id; 
+    }
     
-    public double getMontant() { return montant; }
-    public void setMontant(double montant) { this.montant = montant; }
+    // Pour la compatibilité
+    public int getIdAsInt() {
+        try {
+            return Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
     
-    public String getDate() { return date; }
-    public void setDate(String date) { this.date = date; }
+    public String getDetteId() { 
+        return detteId != null ? detteId : ""; 
+    }
     
-    public String getMethode() { return methode; }
-    public void setMethode(String methode) { this.methode = methode; }
+    public void setDetteId(String detteId) { 
+        this.detteId = detteId; 
+    }
     
-    public String getReference() { return reference; }
-    public void setReference(String reference) { this.reference = reference; }
+    public double getMontant() { 
+        return montant; 
+    }
     
-    public String getDetteId() { return detteId; }
-    public void setDetteId(String detteId) { this.detteId = detteId; }
+    public void setMontant(double montant) { 
+        this.montant = montant; 
+    }
     
-    public String getClientId() { return clientId; }
-    public void setClientId(String clientId) { this.clientId = clientId; }
+    public String getDatePaiement() { 
+        return datePaiement != null ? datePaiement : ""; 
+    }
     
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public void setDatePaiement(String datePaiement) { 
+        this.datePaiement = datePaiement; 
+    }
     
-    // Méthodes manquantes
-    public String getDatePaiement() { return datePaiement; }
-    public void setDatePaiement(String datePaiement) { this.datePaiement = datePaiement; }
+    // Pour compatibilité avec l'ancien code
+    public String getDate() {
+        return getDatePaiement();
+    }
     
-    public String getModePaiement() { return modePaiement; }
-    public void setModePaiement(String modePaiement) { this.modePaiement = modePaiement; }
+    public void setDate(String date) {
+        this.datePaiement = date;
+    }
     
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getModePaiement() { 
+        return modePaiement != null ? modePaiement : ""; 
+    }
+    
+    public void setModePaiement(String modePaiement) { 
+        this.modePaiement = modePaiement; 
+    }
+    
+    // Pour compatibilité avec l'ancien code
+    public String getMethode() {
+        return getModePaiement();
+    }
+    
+    public void setMethode(String methode) {
+        this.modePaiement = methode;
+    }
+    
+    public String getDescription() { 
+        return description != null ? description : ""; 
+    }
+    
+    public void setDescription(String description) { 
+        this.description = description; 
+    }
+    
+    public String getReference() { 
+        return reference != null ? reference : ""; 
+    }
+    
+    public void setReference(String reference) { 
+        this.reference = reference; 
+    }
+    
+    public String getUserId() { 
+        return userId != null ? userId : ""; 
+    }
+    
+    public void setUserId(String userId) { 
+        this.userId = userId; 
+    }
+    
+    public String getCreatedAt() { 
+        return createdAt != null ? createdAt : ""; 
+    }
+    
+    public void setCreatedAt(String createdAt) { 
+        this.createdAt = createdAt; 
+    }
+    
+    // Méthodes pour les champs calculés
+    public String getClientName() { 
+        return clientName != null ? clientName : ""; 
+    }
+    
+    public void setClientName(String clientName) { 
+        this.clientName = clientName; 
+    }
+    
+    public String getClientId() { 
+        return clientId != null ? clientId : ""; 
+    }
+    
+    public void setClientId(String clientId) { 
+        this.clientId = clientId; 
+    }
+    
+    @Override
+    public String toString() {
+        return "Paiement #" + id + " - " + clientName + ": " + montant + " FCFA";
+    }
 }

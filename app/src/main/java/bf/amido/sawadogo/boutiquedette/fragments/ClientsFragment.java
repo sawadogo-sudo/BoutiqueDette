@@ -23,7 +23,7 @@ import bf.amido.sawadogo.boutiquedette.AddEditClientActivity;
 import bf.amido.sawadogo.boutiquedette.ClientsActivity;
 import bf.amido.sawadogo.boutiquedette.adapters.ClientAdapter;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 
 public class ClientsFragment extends Fragment {
 

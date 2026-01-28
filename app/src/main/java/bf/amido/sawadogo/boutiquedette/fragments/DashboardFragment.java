@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import bf.amido.sawadogo.boutiquedette.R;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 import bf.amido.sawadogo.boutiquedette.models.Client;
 import bf.amido.sawadogo.boutiquedette.models.Dette;
 import java.util.List;

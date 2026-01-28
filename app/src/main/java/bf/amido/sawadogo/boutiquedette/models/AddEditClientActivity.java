@@ -8,7 +8,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 
 public class AddEditClientActivity extends AppCompatActivity {
 
@@ -68,7 +68,7 @@ public class AddEditClientActivity extends AppCompatActivity {
             editTextEmail.setText(getIntent().getStringExtra("CLIENT_EMAIL"));
             editTextVille.setText(getIntent().getStringExtra("CLIENT_VILLE"));
             editTextAdresse.setText(getIntent().getStringExtra("CLIENT_ADRESSE"));
-        } else if (clientId != null) {
+        } else if (clientId != null && !clientId.isEmpty()) {
             loadClientFromApi();
         }
     }
@@ -76,8 +76,6 @@ public class AddEditClientActivity extends AppCompatActivity {
     private void loadClientFromApi() {
         showProgress(true);
         
-        // IMPORTANT: Le Client modèle doit avoir getId() qui retourne String
-        // ou nous devons adapter l'API
         apiHelper.getClientById(clientId, new ApiHelper.DataCallback<Client>() {
             @Override
             public void onSuccess(Client client) {
@@ -186,17 +184,10 @@ public class AddEditClientActivity extends AppCompatActivity {
         String adresse = editTextAdresse.getText().toString().trim();
         client.setAdresse(adresse.isEmpty() ? null : adresse);
         
-        if (isEditMode && clientId != null) {
-            // CORRECTION : Le modèle Client doit avoir setId(String) ou on doit convertir
-            try {
-                // Si Client a setId(int)
-                client.setId(Integer.parseInt(clientId));
-                updateClientInApi(client);
-            } catch (NumberFormatException e) {
-                // Si Client a setId(String)
-                // client.setId(clientId);
-                updateClientInApi(client);
-            }
+        if (isEditMode && clientId != null && !clientId.isEmpty()) {
+            // Le Client a maintenant setId(String)
+            client.setId(clientId);
+            updateClientInApi(client);
         } else {
             createClientInApi(client);
         }
@@ -231,13 +222,7 @@ public class AddEditClientActivity extends AppCompatActivity {
     }
     
     private void updateClientInApi(Client client) {
-        // CORRECTION : L'API attend un String pour l'ID
-        String idToUpdate = clientId;
-        if (client.getId() != 0) {
-            idToUpdate = String.valueOf(client.getId());
-        }
-        
-        apiHelper.updateClient(idToUpdate, client, new ApiHelper.SimpleCallback() {
+        apiHelper.updateClient(clientId, client, new ApiHelper.SimpleCallback() {
             @Override
             public void onSuccess(String message) {
                 runOnUiThread(() -> {

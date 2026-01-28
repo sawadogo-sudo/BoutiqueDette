@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import bf.amido.sawadogo.boutiquedette.api.SimpleAuthService;
+import bf.amido.sawadogo.boutiquedette.adapters.api.SimpleAuthService;
 
 public class AuthActivity extends AppCompatActivity {
     

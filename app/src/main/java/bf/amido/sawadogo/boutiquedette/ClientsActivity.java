@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import bf.amido.sawadogo.boutiquedette.adapters.ClientAdapter;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 import java.util.ArrayList;
 import java.util.List;
 

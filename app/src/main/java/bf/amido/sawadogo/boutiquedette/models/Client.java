@@ -1,19 +1,39 @@
 package bf.amido.sawadogo.boutiquedette.models;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Client {
-    private int id;
+    @SerializedName("id")
+    private String id; // Changer de int à String
+    
+    @SerializedName("nom")
     private String nom;
+    
+    @SerializedName("prenom")
     private String prenom;
+    
+    @SerializedName("telephone")
     private String telephone;
+    
+    @SerializedName("email")
     private String email;
+    
+    @SerializedName("ville")
     private String ville;
+    
+    @SerializedName("adresse")
     private String adresse;
+    
+    @SerializedName("dateCreation")
     private String dateCreation;
-    private String createdAt; 
+    
+    @SerializedName("created_at") // Note: Supabase utilise des underscores
+    private String createdAt;
     
     public Client() {}
     
-    public Client(int id, String nom, String prenom, String telephone, String email, 
+    // Mettre à jour les constructeurs
+    public Client(String id, String nom, String prenom, String telephone, String email, 
                   String ville, String adresse, String dateCreation) {
         this.id = id;
         this.nom = nom;
@@ -26,7 +46,7 @@ public class Client {
     }
     
     // Constructeur avec createdAt
-    public Client(int id, String nom, String prenom, String telephone, String email, 
+    public Client(String id, String nom, String prenom, String telephone, String email, 
                   String ville, String adresse, String dateCreation, String createdAt) {
         this.id = id;
         this.nom = nom;
@@ -40,37 +60,89 @@ public class Client {
     }
     
     // Getters et setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public String getId() { 
+        return id != null ? id : ""; 
+    }
     
-    public String getNom() { return nom; }
-    public void setNom(String nom) { this.nom = nom; }
+    public void setId(String id) { 
+        this.id = id; 
+    }
     
-    public String getPrenom() { return prenom; }
-    public void setPrenom(String prenom) { this.prenom = prenom; }
+    // Pour la compatibilité, vous pouvez garder un getter qui retourne un int
+    public int getIdAsInt() {
+        try {
+            return Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
     
-    public String getTelephone() { return telephone; }
-    public void setTelephone(String telephone) { this.telephone = telephone; }
+    public String getNom() { 
+        return nom != null ? nom : ""; 
+    }
     
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setNom(String nom) { 
+        this.nom = nom; 
+    }
     
-    public String getVille() { return ville; }
-    public void setVille(String ville) { this.ville = ville; }
+    public String getPrenom() { 
+        return prenom != null ? prenom : ""; 
+    }
     
-    public String getAdresse() { return adresse; }
-    public void setAdresse(String adresse) { this.adresse = adresse; }
+    public void setPrenom(String prenom) { 
+        this.prenom = prenom; 
+    }
     
-    public String getDateCreation() { return dateCreation; }
-    public void setDateCreation(String dateCreation) { this.dateCreation = dateCreation; }
+    public String getTelephone() { 
+        return telephone != null ? telephone : ""; 
+    }
     
-    // Ajout de la méthode getCreatedAt() pour résoudre les erreurs
+    public void setTelephone(String telephone) { 
+        this.telephone = telephone; 
+    }
+    
+    public String getEmail() { 
+        return email != null ? email : ""; 
+    }
+    
+    public void setEmail(String email) { 
+        this.email = email; 
+    }
+    
+    public String getVille() { 
+        return ville != null ? ville : ""; 
+    }
+    
+    public void setVille(String ville) { 
+        this.ville = ville; 
+    }
+    
+    public String getAdresse() { 
+        return adresse != null ? adresse : ""; 
+    }
+    
+    public void setAdresse(String adresse) { 
+        this.adresse = adresse; 
+    }
+    
+    public String getDateCreation() { 
+        return dateCreation != null ? dateCreation : ""; 
+    }
+    
+    public void setDateCreation(String dateCreation) { 
+        this.dateCreation = dateCreation; 
+    }
+    
     public String getCreatedAt() { 
-        // Si createdAt est null, retourner dateCreation comme valeur par défaut
         return createdAt != null ? createdAt : dateCreation; 
     }
     
     public void setCreatedAt(String createdAt) { 
         this.createdAt = createdAt; 
+    }
+    
+    @Override
+    public String toString() {
+        return nom + " " + prenom;
     }
 }

@@ -1,4 +1,4 @@
-package bf.amido.sawadogo.boutiquedette.api;
+package bf.amido.sawadogo.boutiquedette.adapters.api;
 
 public class SupabaseConfig {
     

@@ -21,7 +21,7 @@ import java.util.List;
 import bf.amido.sawadogo.boutiquedette.R;
 import bf.amido.sawadogo.boutiquedette.AddEditDetteActivity;
 import bf.amido.sawadogo.boutiquedette.models.Dette;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 import bf.amido.sawadogo.boutiquedette.adapters.DetteAdapter;
 
 public class DettesFragment extends Fragment {

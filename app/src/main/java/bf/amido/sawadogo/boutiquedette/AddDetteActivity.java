@@ -18,7 +18,7 @@ import java.util.Locale;
 
 import bf.amido.sawadogo.boutiquedette.models.Dette;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 
 public class AddDetteActivity extends AppCompatActivity {
     
@@ -30,7 +30,7 @@ public class AddDetteActivity extends AppCompatActivity {
     
     private ApiHelper apiHelper;
     private List<Client> clientsList;
-    private int selectedClientId = -1; // Garder int pour la comparaison
+    private String selectedClientId = null; // Changer de int à String
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +45,8 @@ public class AddDetteActivity extends AppCompatActivity {
         
         // Vérifier si un client est passé en paramètre
         String clientIdStr = getIntent().getStringExtra("CLIENT_ID");
-        if (clientIdStr != null) {
-            try {
-                selectedClientId = Integer.parseInt(clientIdStr);
-            } catch (NumberFormatException e) {
-                selectedClientId = -1;
-            }
+        if (clientIdStr != null && !clientIdStr.isEmpty()) {
+            selectedClientId = clientIdStr; // Garder comme String
         }
     }
     
@@ -155,9 +151,10 @@ public class AddDetteActivity extends AppCompatActivity {
         spinnerClient.setAdapter(adapter);
         
         // Sélectionner le client passé en paramètre
-        if (selectedClientId != -1) {
+        if (selectedClientId != null && !selectedClientId.isEmpty()) {
             for (int i = 0; i < clients.size(); i++) {
-                if (clients.get(i).getId() == selectedClientId) { // Comparaison directe d'ints
+                // Comparaison de Strings avec equals()
+                if (clients.get(i).getId().equals(selectedClientId)) {
                     spinnerClient.setSelection(i);
                     break;
                 }
@@ -223,7 +220,7 @@ public class AddDetteActivity extends AppCompatActivity {
         if (selectedPosition >= 0 && clientsList != null && 
             selectedPosition < clientsList.size()) {
             Client selectedClient = clientsList.get(selectedPosition);
-            dette.setClientId(String.valueOf(selectedClient.getId())); // Conversion int → String
+            dette.setClientId(selectedClient.getId()); // Déjà un String, pas besoin de conversion
         }
         
         // Montant

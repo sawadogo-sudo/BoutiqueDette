@@ -10,7 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import bf.amido.sawadogo.boutiquedette.models.Dette;
 import bf.amido.sawadogo.boutiquedette.models.Client;
-import bf.amido.sawadogo.boutiquedette.api.ApiHelper;
+import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -128,19 +128,12 @@ public class AddEditDetteActivity extends AppCompatActivity {
     }
     
     private void selectClientInSpinner(String clientId) {
-        if (clientId == null) return;
+        if (clientId == null || clientId.isEmpty()) return;
         
-        // Convertir clientId en int pour la comparaison
-        int clientIdInt;
-        try {
-            clientIdInt = Integer.parseInt(clientId);
-        } catch (NumberFormatException e) {
-            return;
-        }
-        
+        // Le clientId est déjà un String, pas besoin de conversion
         for (int i = 0; i < clientsList.size(); i++) {
-            // CORRECTION : Comparaison d'ints avec == au lieu de equals()
-            if (clientsList.get(i).getId() == clientIdInt) {
+            // CORRECTION : Utiliser equals() pour comparer des Strings
+            if (clientsList.get(i).getId().equals(clientId)) {
                 spinnerClient.setSelection(i + 1); // +1 pour l'élément "Sélectionner un client"
                 break;
             }
@@ -159,7 +152,7 @@ public class AddEditDetteActivity extends AppCompatActivity {
                             etDateDette.setText(dette.getDateDette());
                             
                             // Sélectionner le client dans le spinner
-                            if (dette.getClientId() != null) {
+                            if (dette.getClientId() != null && !dette.getClientId().isEmpty()) {
                                 selectClientInSpinner(dette.getClientId());
                             }
                         } else {
@@ -216,17 +209,12 @@ public class AddEditDetteActivity extends AppCompatActivity {
         
         // Récupérer l'ID du client sélectionné
         Client selectedClient = clientsList.get(selectedPosition - 1);
-        // CORRECTION : Conversion de int en String
-        dette.setClientId(String.valueOf(selectedClient.getId()));
+        // CORRECTION : Pas besoin de conversion, getId() retourne déjà un String
+        dette.setClientId(selectedClient.getId());
         
-        if (isEditMode && detteId != null) {
-            // CORRECTION : Conversion de String en int
-            try {
-                dette.setId(Integer.parseInt(detteId));
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "ID de dette invalide", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        if (isEditMode && detteId != null && !detteId.isEmpty()) {
+            // CORRECTION : setId() attend un String maintenant
+            dette.setId(detteId);
             updateDetteInSupabase(dette);
         } else {
             createDetteInSupabase(dette);
@@ -299,10 +287,8 @@ public class AddEditDetteActivity extends AppCompatActivity {
         btnSave.setEnabled(false);
         btnSave.setText("Mise à jour...");
         
-        // CORRECTION : Conversion de int en String pour l'API
-        String detteIdString = String.valueOf(dette.getId());
-        
-        apiHelper.updateDette(detteIdString, dette, new ApiHelper.SimpleCallback() {
+        // CORRECTION : Pas besoin de conversion, detteId est déjà un String
+        apiHelper.updateDette(detteId, dette, new ApiHelper.SimpleCallback() {
             @Override
             public void onSuccess(String message) {
                 runOnUiThread(() -> {
