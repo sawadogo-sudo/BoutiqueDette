@@ -140,7 +140,7 @@ public class AddEditClientActivity extends AppCompatActivity {
             editTextTelephone.requestFocus();
             isValid = false;
         } else if (!isValidPhone(telephone)) {
-            editTextTelephone.setError("Format invalide (ex: 70123456)");
+            editTextTelephone.setError("Format de téléphone invalide");
             editTextTelephone.requestFocus();
             isValid = false;
         }
@@ -156,14 +156,68 @@ public class AddEditClientActivity extends AppCompatActivity {
     }
     
     private boolean isValidPhone(String phone) {
-        // Accepte: 70123456, 76123456
-        String phoneRegex = "^[67]\\d{7}$";
-        return phone.replaceAll("\\s+", "").matches(phoneRegex);
+    if (phone == null || phone.trim().isEmpty()) {
+        return false;
     }
     
+    // Nettoyer le numéro
+    String cleanedPhone = phone.trim();
+    
+    // Extraire les chiffres
+    String digitsOnly = cleanedPhone.replaceAll("[^0-9]", "");
+    
+    // Vérifications très basiques
+    if (digitsOnly.length() < 8) {
+        return false; // Trop court
+    }
+    
+    if (digitsOnly.length() > 15) {
+        return false; // Trop long
+    }
+    
+    // Vérifier que ce n'est pas une suite de chiffres identiques
+    if (digitsOnly.matches("^(\\d)\\1{7,}$")) {
+        return false;
+    }
+    
+    // Vérifier que ça contient au moins un chiffre différent
+    boolean hasDifferentDigits = false;
+    char firstDigit = digitsOnly.charAt(0);
+    for (int i = 1; i < Math.min(digitsOnly.length(), 8); i++) {
+        if (digitsOnly.charAt(i) != firstDigit) {
+            hasDifferentDigits = true;
+            break;
+        }
+    }
+    
+    return hasDifferentDigits;
+}
     private boolean isValidEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return true; // L'email est optionnel
+        }
+        
+        String emailTrimmed = email.trim();
+        
+        // Expression régulière simple pour validation d'email
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-        return email.matches(emailRegex);
+        
+        // Vérifier le format de base
+        if (!emailTrimmed.matches(emailRegex)) {
+            return false;
+        }
+        
+        // Vérifications supplémentaires
+        if (emailTrimmed.contains("..")) {
+            return false; // Pas de deux points consécutifs
+        }
+        
+        if (emailTrimmed.startsWith(".") || emailTrimmed.endsWith(".")) {
+            return false; // Ne doit pas commencer ou finir par un point
+        }
+        
+        // Vérifier la longueur raisonnable
+        return emailTrimmed.length() <= 254; // Longueur maximale standard
     }
     
     private void saveClient() {

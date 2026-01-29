@@ -1,18 +1,21 @@
 package bf.amido.sawadogo.boutiquedette;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -24,20 +27,23 @@ import bf.amido.sawadogo.boutiquedette.adapters.api.ApiHelper;
 
 public class AddPaiementActivity extends AppCompatActivity {
     
-    private TextView tvClientInfo, tvDetteInfo;
+    private TextView tvClientInfo, tvDetteInfo, tvSelectClient;
     private EditText etMontant, etReference, etDescription;
-    private Spinner spinnerModePaiement;
+    private Spinner spinnerModePaiement, spinnerClient, spinnerDette;
     private DatePicker datePickerPaiement;
-    private Button btnSave, btnCancel;
+    private Button btnSave, btnCancel, btnSelectClient;
     private ProgressBar progressBar;
+    private LinearLayout layoutClientSelection, layoutPaiementForm;
     
     private ApiHelper apiHelper;
     private String clientId;
     private String detteId;
     private double detteMontant;
     private double detteRestante;
-    private Client client;
-    private Dette dette;
+    private Client selectedClient;
+    private Dette selectedDette;
+    private List<Client> clientsList;
+    private List<Dette> dettesList = new ArrayList<>();
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,19 +52,12 @@ public class AddPaiementActivity extends AppCompatActivity {
         
         apiHelper = new ApiHelper(this);
         
-        // Récupérer les données de l'intent
+        // Récupérer les données de l'intent (si venant d'ailleurs)
         clientId = getIntent().getStringExtra("CLIENT_ID");
         detteId = getIntent().getStringExtra("DETTE_ID");
         
-        if (clientId == null || detteId == null) {
-            Toast.makeText(this, "Données invalides", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-        
         initViews();
         setupListeners();
-        loadClientAndDette();
         
         // Configurer la date d'aujourd'hui par défaut
         Calendar calendar = Calendar.getInstance();
@@ -68,28 +67,47 @@ public class AddPaiementActivity extends AppCompatActivity {
             calendar.get(Calendar.DAY_OF_MONTH),
             null
         );
+        
+        // Si on a déjà un client et une dette, charger directement
+        if (clientId != null && detteId != null) {
+            layoutClientSelection.setVisibility(View.GONE);
+            layoutPaiementForm.setVisibility(View.VISIBLE);
+            loadClientAndDette();
+        } else {
+            // Sinon, montrer la sélection
+            layoutClientSelection.setVisibility(View.VISIBLE);
+            layoutPaiementForm.setVisibility(View.GONE);
+            loadClientsWithDettes();
+        }
     }
     
     private void initViews() {
         tvClientInfo = findViewById(R.id.tvClientInfo);
         tvDetteInfo = findViewById(R.id.tvDetteInfo);
+        tvSelectClient = findViewById(R.id.tvSelectClient);
         
         etMontant = findViewById(R.id.etMontant);
         etReference = findViewById(R.id.etReference);
         etDescription = findViewById(R.id.etDescription);
         
         spinnerModePaiement = findViewById(R.id.spinnerModePaiement);
+        spinnerClient = findViewById(R.id.spinnerClient);
+        spinnerDette = findViewById(R.id.spinnerDette);
         
         datePickerPaiement = findViewById(R.id.datePickerPaiement);
         
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
+        btnSelectClient = findViewById(R.id.btnSelectClient);
         
         progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.GONE);
         
+        layoutClientSelection = findViewById(R.id.layoutClientSelection);
+        layoutPaiementForm = findViewById(R.id.layoutPaiementForm);
+        
         // Configurer le spinner des modes de paiement
-        String[] modesPaiement = {"Espèces", "Mobile Money", "Carte Bancaire", "Virement"};
+        String[] modesPaiement = {"Espèces", "Mobile Money", "Carte Bancaire"};
         ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(
             this,
             android.R.layout.simple_spinner_item,
@@ -108,6 +126,56 @@ public class AddPaiementActivity extends AppCompatActivity {
         
         btnCancel.setOnClickListener(v -> {
             finish();
+        });
+        
+        btnSelectClient.setOnClickListener(v -> {
+            if (selectedClient != null && selectedDette != null) {
+                // Passer au formulaire de paiement
+                layoutClientSelection.setVisibility(View.GONE);
+                layoutPaiementForm.setVisibility(View.VISIBLE);
+                loadPaiementsForSelectedDette();
+            } else {
+                Toast.makeText(this, "Veuillez sélectionner un client et une dette", 
+                    Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        // Quand on sélectionne un client, charger ses dettes
+        spinnerClient.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                if (position > 0 && clientsList != null && position <= clientsList.size()) {
+                    selectedClient = clientsList.get(position - 1);
+                    loadDettesForClient(selectedClient.getId());
+                } else {
+                    selectedClient = null;
+                    dettesList.clear();
+                    updateDetteSpinner();
+                }
+            }
+            
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                selectedClient = null;
+            }
+        });
+        
+        // Quand on sélectionne une dette
+        spinnerDette.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                if (position > 0 && dettesList != null && position <= dettesList.size()) {
+                    selectedDette = dettesList.get(position - 1);
+                    updateSelectedDetteInfo();
+                } else {
+                    selectedDette = null;
+                }
+            }
+            
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                selectedDette = null;
+            }
         });
         
         // Limiter le montant au maximum possible
@@ -131,6 +199,180 @@ public class AddPaiementActivity extends AppCompatActivity {
         });
     }
     
+    private void loadClientsWithDettes() {
+        showProgress(true);
+        
+        // Charger tous les clients
+        apiHelper.getAllClients(new ApiHelper.DataCallback<List<Client>>() {
+            @Override
+            public void onSuccess(List<Client> clients) {
+                clientsList = clients;
+                
+                // Charger toutes les dettes
+                apiHelper.getAllDettes(new ApiHelper.DataCallback<List<Dette>>() {
+                    @Override
+                    public void onSuccess(List<Dette> allDettes) {
+                        runOnUiThread(() -> {
+                            showProgress(false);
+                            
+                            // Filtrer les clients qui ont des dettes
+                            List<Client> clientsWithDettes = new ArrayList<>();
+                            for (Client client : clients) {
+                                boolean hasDette = false;
+                                for (Dette dette : allDettes) {
+                                    if (dette.getClientId().equals(client.getId())) {
+                                        hasDette = true;
+                                        break;
+                                    }
+                                }
+                                if (hasDette) {
+                                    clientsWithDettes.add(client);
+                                }
+                            }
+                            
+                            if (clientsWithDettes.isEmpty()) {
+                                tvSelectClient.setText("Aucun client avec dette trouvé");
+                                spinnerClient.setEnabled(false);
+                                btnSelectClient.setEnabled(false);
+                            } else {
+                                updateClientSpinner(clientsWithDettes);
+                            }
+                        });
+                    }
+                    
+                    @Override
+                    public void onError(String error) {
+                        runOnUiThread(() -> {
+                            showProgress(false);
+                            Toast.makeText(AddPaiementActivity.this, 
+                                "Erreur chargement dettes: " + error, 
+                                Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showProgress(false);
+                    Toast.makeText(AddPaiementActivity.this, 
+                        "Erreur chargement clients: " + error, 
+                        Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+    
+    private void updateClientSpinner(List<Client> clients) {
+        List<String> clientNames = new ArrayList<>();
+        clientNames.add("Sélectionner un client");
+        
+        for (Client client : clients) {
+            String displayName = client.getNom();
+            if (client.getPrenom() != null && !client.getPrenom().isEmpty()) {
+                displayName += " " + client.getPrenom();
+            }
+            if (client.getTelephone() != null && !client.getTelephone().isEmpty()) {
+                displayName += " - " + client.getTelephone();
+            }
+            clientNames.add(displayName);
+        }
+        
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+            this,
+            android.R.layout.simple_spinner_item,
+            clientNames
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerClient.setAdapter(adapter);
+    }
+    
+    private void loadDettesForClient(String clientId) {
+        showProgress(true);
+        
+        apiHelper.getAllDettes(new ApiHelper.DataCallback<List<Dette>>() {
+            @Override
+            public void onSuccess(List<Dette> allDettes) {
+                runOnUiThread(() -> {
+                    showProgress(false);
+                    
+                    // Filtrer les dettes de ce client
+                    dettesList.clear();
+                    for (Dette dette : allDettes) {
+                        if (dette.getClientId().equals(clientId)) {
+                            dettesList.add(dette);
+                        }
+                    }
+                    
+                    updateDetteSpinner();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showProgress(false);
+                    Toast.makeText(AddPaiementActivity.this, 
+                        "Erreur chargement dettes client: " + error, 
+                        Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+    
+    private void updateDetteSpinner() {
+        if (dettesList.isEmpty()) {
+            List<String> emptyList = new ArrayList<>();
+            emptyList.add("Aucune dette trouvée");
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                emptyList
+            );
+            spinnerDette.setAdapter(adapter);
+            spinnerDette.setEnabled(false);
+        } else {
+            List<String> detteDescriptions = new ArrayList<>();
+            detteDescriptions.add("Sélectionner une dette");
+            
+            for (Dette dette : dettesList) {
+                String description = String.format(Locale.FRANCE,
+                    "Dette: %,.0f FCFA - %s",
+                    dette.getMontant(),
+                    dette.getStatut());
+                
+                if (dette.getDescription() != null && !dette.getDescription().isEmpty()) {
+                    description += " - " + dette.getDescription();
+                }
+                
+                detteDescriptions.add(description);
+            }
+            
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                detteDescriptions
+            );
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerDette.setAdapter(adapter);
+            spinnerDette.setEnabled(true);
+        }
+    }
+    
+    private void updateSelectedDetteInfo() {
+        if (selectedDette != null && selectedClient != null) {
+            String info = String.format(Locale.FRANCE,
+                "Client: %s %s\nMontant dette: %,.0f FCFA\nStatut: %s",
+                selectedClient.getNom(),
+                selectedClient.getPrenom() != null ? selectedClient.getPrenom() : "",
+                selectedDette.getMontant(),
+                selectedDette.getStatut());
+            
+            tvSelectClient.setText(info);
+        }
+    }
+    
     private void loadClientAndDette() {
         showProgress(true);
         
@@ -138,7 +380,7 @@ public class AddPaiementActivity extends AppCompatActivity {
         apiHelper.getClientById(clientId, new ApiHelper.DataCallback<Client>() {
             @Override
             public void onSuccess(Client loadedClient) {
-                client = loadedClient;
+                selectedClient = loadedClient;
                 updateClientInfo();
                 
                 // Charger la dette
@@ -158,13 +400,26 @@ public class AddPaiementActivity extends AppCompatActivity {
         });
     }
     
+    private void loadPaiementsForSelectedDette() {
+        if (selectedDette == null) return;
+        
+        detteId = selectedDette.getId();
+        detteMontant = selectedDette.getMontant();
+        
+        updateClientInfo();
+        updateDetteInfo();
+        
+        // Charger les paiements existants
+        loadPaiementsExistants();
+    }
+    
     private void loadDetteDetails() {
         apiHelper.getDetteById(detteId, new ApiHelper.DataCallback<Dette>() {
             @Override
             public void onSuccess(Dette loadedDette) {
-                dette = loadedDette;
-                if (dette != null) {
-                    detteMontant = dette.getMontant();
+                selectedDette = loadedDette;
+                if (selectedDette != null) {
+                    detteMontant = selectedDette.getMontant();
                     
                     // Charger les paiements existants pour calculer le reste
                     loadPaiementsExistants();
@@ -224,23 +479,29 @@ public class AddPaiementActivity extends AppCompatActivity {
     }
     
     private void updateClientInfo() {
-        if (client != null) {
-            String clientInfo = client.getNom();
-            if (client.getPrenom() != null && !client.getPrenom().isEmpty()) {
-                clientInfo += " " + client.getPrenom();
+        if (selectedClient != null) {
+            String clientInfo = selectedClient.getNom();
+            if (selectedClient.getPrenom() != null && !selectedClient.getPrenom().isEmpty()) {
+                clientInfo += " " + selectedClient.getPrenom();
             }
-            if (client.getTelephone() != null && !client.getTelephone().isEmpty()) {
-                clientInfo += " - " + client.getTelephone();
+            if (selectedClient.getTelephone() != null && !selectedClient.getTelephone().isEmpty()) {
+                clientInfo += " - " + selectedClient.getTelephone();
             }
             tvClientInfo.setText(clientInfo);
         }
     }
     
     private void updateDetteInfo() {
-        if (dette != null) {
+        if (selectedDette != null) {
             String detteInfo = String.format(Locale.FRANCE,
                 "Montant total: %,.0f FCFA\nReste à payer: %,.0f FCFA",
                 detteMontant, detteRestante);
+            
+            // Ajouter la description si elle existe
+            if (selectedDette.getDescription() != null && !selectedDette.getDescription().isEmpty()) {
+                detteInfo += "\nDescription: " + selectedDette.getDescription();
+            }
+            
             tvDetteInfo.setText(detteInfo);
             
             // Définir le montant maximum possible comme placeholder
@@ -251,6 +512,9 @@ public class AddPaiementActivity extends AppCompatActivity {
                 etMontant.setEnabled(false);
                 btnSave.setEnabled(false);
                 Toast.makeText(this, "Cette dette est déjà entièrement payée", Toast.LENGTH_LONG).show();
+            } else {
+                etMontant.setEnabled(true);
+                btnSave.setEnabled(true);
             }
         }
     }
@@ -320,7 +584,7 @@ public class AddPaiementActivity extends AppCompatActivity {
         // Créer l'objet Paiement
         Paiement paiement = new Paiement();
         paiement.setDetteId(detteId);
-        paiement.setClientId(clientId);
+        paiement.setClientId(selectedClient.getId());
         paiement.setMontant(montant);
         
         // Récupérer l'ID utilisateur

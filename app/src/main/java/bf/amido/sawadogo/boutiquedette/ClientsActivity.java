@@ -3,6 +3,8 @@ package bf.amido.sawadogo.boutiquedette;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -88,9 +90,18 @@ public class ClientsActivity extends AppCompatActivity {
     }
     
     private void setupRecyclerView() {
-        clientAdapter = new ClientAdapter(this, clientList, client -> { 
-            // Afficher le menu d'options pour le client
-            showClientOptionsDialog(client);
+        clientAdapter = new ClientAdapter(this, clientList, new ClientAdapter.OnClientClickListener() {
+            @Override
+            public void onClientClick(Client client) {
+                // Afficher le menu d'options pour le client
+                showClientOptionsDialog(client);
+            }
+            
+            @Override
+            public void onWhatsAppClick(Client client) {
+                // Envoyer notification WhatsApp
+                sendWhatsAppMessage(client);
+            }
         });
         
         recyclerViewClients.setLayoutManager(new LinearLayoutManager(this));
@@ -215,7 +226,14 @@ public class ClientsActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(client.getNom() + " " + client.getPrenom());
         
-        String[] options = {"Voir détails", "Modifier", "Supprimer", "Ajouter une dette"};
+        String[] options = {
+            "Voir détails", 
+            "Modifier", 
+            "Supprimer", 
+            "Ajouter une dette",
+            "Envoyer message WhatsApp",
+            "Appeler"
+        };
         
         builder.setItems(options, new DialogInterface.OnClickListener() {
             @Override
@@ -236,6 +254,14 @@ public class ClientsActivity extends AppCompatActivity {
                     case 3: // Ajouter une dette
                         addDetteForClient(client);
                         break;
+                        
+                    case 4: // WhatsApp
+                        sendWhatsAppMessage(client);
+                        break;
+                        
+                    case 5: // Appeler
+                        callClient(client);
+                        break;
                 }
             }
         });
@@ -246,14 +272,14 @@ public class ClientsActivity extends AppCompatActivity {
     
     private void openClientDetails(Client client) {
         Intent intent = new Intent(this, ClientDetailsActivity.class);
-        intent.putExtra("CLIENT_ID", String.valueOf(client.getId())); // Conversion int → String
+        intent.putExtra("CLIENT_ID", String.valueOf(client.getId()));
         startActivity(intent);
     }
     
     private void editClient(Client client) {
         Intent intent = new Intent(this, AddEditClientActivity.class);
         intent.putExtra("MODE", "EDIT");
-        intent.putExtra("CLIENT_ID", String.valueOf(client.getId())); // Conversion int → String
+        intent.putExtra("CLIENT_ID", String.valueOf(client.getId()));
         intent.putExtra("CLIENT_NOM", client.getNom());
         intent.putExtra("CLIENT_PRENOM", client.getPrenom());
         intent.putExtra("CLIENT_TELEPHONE", client.getTelephone());
@@ -282,7 +308,6 @@ public class ClientsActivity extends AppCompatActivity {
     }
     
     private void deleteClientFromSupabase(Client client) {
-        // CORRECTION : Conversion de int en String pour l'API
         apiHelper.deleteClient(String.valueOf(client.getId()), new ApiHelper.SimpleCallback() {
             @Override
             public void onSuccess(String message) {
@@ -324,8 +349,164 @@ public class ClientsActivity extends AppCompatActivity {
     
     private void addDetteForClient(Client client) {
         Intent intent = new Intent(this, AddEditDetteActivity.class);
-        intent.putExtra("CLIENT_ID", String.valueOf(client.getId())); // Conversion int → String
+        intent.putExtra("CLIENT_ID", String.valueOf(client.getId()));
         intent.putExtra("CLIENT_NOM", client.getNom() + " " + client.getPrenom());
         startActivity(intent);
+    }
+    
+    // ============ MÉTHODES POUR LES NOTIFICATIONS WHATSAPP ============
+    
+    private void sendWhatsAppMessage(Client client) {
+        String phoneNumber = client.getTelephone();
+        
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            Toast.makeText(this, "Ce client n'a pas de numéro de téléphone", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Nettoyer le numéro de téléphone
+        String cleanNumber = cleanPhoneNumber(phoneNumber);
+        
+        if (!isWhatsAppInstalled()) {
+            Toast.makeText(this, "WhatsApp n'est pas installé sur votre appareil", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        // Créer un dialogue pour choisir le type de message
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Envoyer un message à " + client.getNom());
+        
+        String[] messageTypes = {
+            "Rappel de dette",
+            "Confirmation de paiement",
+            "Message personnalisé"
+        };
+        
+        builder.setItems(messageTypes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String message = "";
+                
+                switch (which) {
+                    case 0: // Rappel de dette
+                        message = "Bonjour " + client.getNom() + 
+                                ",\nJe vous contacte concernant votre dette.\n" +
+                                "Merci de régulariser votre situation au plus vite.\n" +
+                                "Cordialement.";
+                        break;
+                        
+                    case 1: // Confirmation de paiement
+                        message = "Bonjour " + client.getNom() + 
+                                ",\nJe vous confirme la réception de votre paiement.\n" +
+                                "Merci pour votre confiance.\n" +
+                                "Cordialement.";
+                        break;
+                        
+                    case 2: // Message personnalisé
+                        showCustomMessageDialog(client, cleanNumber);
+                        return; // Ne pas envoyer tout de suite
+                }
+                
+                openWhatsAppWithMessage(cleanNumber, message);
+            }
+        });
+        
+        builder.setNegativeButton("Annuler", null);
+        builder.show();
+    }
+    
+    private void showCustomMessageDialog(Client client, String phoneNumber) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Message personnalisé pour " + client.getNom());
+        
+        // Créer un champ de texte pour le message
+        final EditText input = new EditText(this);
+        input.setHint("Tapez votre message ici...");
+        input.setText("Bonjour " + client.getNom() + ",\n\n");
+        input.setMinHeight(200);
+        builder.setView(input);
+        
+        builder.setPositiveButton("Envoyer", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String message = input.getText().toString().trim();
+                if (!message.isEmpty()) {
+                    openWhatsAppWithMessage(phoneNumber, message);
+                }
+            }
+        });
+        
+        builder.setNegativeButton("Annuler", null);
+        builder.show();
+    }
+    
+    private String cleanPhoneNumber(String phone) {
+        // Supprimer les espaces, tirets, parenthèses
+        String cleaned = phone.replaceAll("[\\s\\-\\(\\)\\.]", "");
+        
+        // Ajouter l'indicatif international si nécessaire
+        if (cleaned.startsWith("0")) {
+            // Remplacer le 0 initial par +226 pour le Burkina Faso
+            cleaned = "+226" + cleaned.substring(1);
+        } else if (!cleaned.startsWith("+")) {
+            // Ajouter + si absent
+            cleaned = "+" + cleaned;
+        }
+        
+        return cleaned;
+    }
+    
+    private boolean isWhatsAppInstalled() {
+        PackageManager pm = getPackageManager();
+        try {
+            pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            // WhatsApp Business
+            try {
+                pm.getPackageInfo("com.whatsapp.w4b", PackageManager.GET_ACTIVITIES);
+                return true;
+            } catch (PackageManager.NameNotFoundException e2) {
+                return false;
+            }
+        }
+    }
+    
+    private void openWhatsAppWithMessage(String phoneNumber, String message) {
+        try {
+            // URL pour WhatsApp avec numéro et message
+            String url = "https://wa.me/" + phoneNumber + "?text=" + Uri.encode(message);
+            
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            
+            // Vérifier si WhatsApp peut gérer l'intent
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Impossible d'ouvrir WhatsApp", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Erreur: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+    
+    private void callClient(Client client) {
+        String phoneNumber = client.getTelephone();
+        
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            Toast.makeText(this, "Ce client n'a pas de numéro de téléphone", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + phoneNumber));
+        
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "Aucune application d'appel trouvée", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -1,7 +1,11 @@
 package bf.amido.sawadogo.boutiquedette;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -30,7 +34,7 @@ public class AddDetteActivity extends AppCompatActivity {
     
     private ApiHelper apiHelper;
     private List<Client> clientsList;
-    private String selectedClientId = null; // Changer de int à String
+    private String selectedClientId = null;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +50,22 @@ public class AddDetteActivity extends AppCompatActivity {
         // Vérifier si un client est passé en paramètre
         String clientIdStr = getIntent().getStringExtra("CLIENT_ID");
         if (clientIdStr != null && !clientIdStr.isEmpty()) {
-            selectedClientId = clientIdStr; // Garder comme String
+            selectedClientId = clientIdStr;
         }
+        
+        // Debug: vérifier les préférences utilisateur
+        debugUserPreferences();
+    }
+    
+    private void debugUserPreferences() {
+        SharedPreferences prefs = getSharedPreferences("auth_prefs", MODE_PRIVATE);
+        String userId = prefs.getString("user_id", "non trouvé");
+        String userEmail = prefs.getString("user_email", "non trouvé");
+        boolean isLoggedIn = prefs.getBoolean("is_logged_in", false);
+        
+        Log.d("USER_DEBUG", "User ID dans prefs: " + userId);
+        Log.d("USER_DEBUG", "User Email dans prefs: " + userEmail);
+        Log.d("USER_DEBUG", "Is logged in: " + isLoggedIn);
     }
     
     private void initViews() {
@@ -153,7 +171,6 @@ public class AddDetteActivity extends AppCompatActivity {
         // Sélectionner le client passé en paramètre
         if (selectedClientId != null && !selectedClientId.isEmpty()) {
             for (int i = 0; i < clients.size(); i++) {
-                // Comparaison de Strings avec equals()
                 if (clients.get(i).getId().equals(selectedClientId)) {
                     spinnerClient.setSelection(i);
                     break;
@@ -220,7 +237,7 @@ public class AddDetteActivity extends AppCompatActivity {
         if (selectedPosition >= 0 && clientsList != null && 
             selectedPosition < clientsList.size()) {
             Client selectedClient = clientsList.get(selectedPosition);
-            dette.setClientId(selectedClient.getId()); // Déjà un String, pas besoin de conversion
+            dette.setClientId(selectedClient.getId());
         }
         
         // Montant
@@ -263,15 +280,33 @@ public class AddDetteActivity extends AppCompatActivity {
         String statut = spinnerStatut.getSelectedItem().toString();
         dette.setStatut(statut);
         
-        // User ID (à récupérer depuis les préférences)
+        // User ID
         String userId = getCurrentUserId();
-        if (userId == null || userId.isEmpty()) {
-            Toast.makeText(this, "Utilisateur non connecté", Toast.LENGTH_SHORT).show();
+        Log.d("SAVE_DETTE", "User ID obtenu: " + userId);
+        
+        if (userId == null || userId.isEmpty() || "default_user".equals(userId)) {
+            Toast.makeText(this, "Erreur: ID utilisateur invalide. Veuillez vous reconnecter.", 
+                Toast.LENGTH_LONG).show();
             showProgress(false);
             buttonSave.setEnabled(true);
+            
+            // Rediriger vers l'authentification
+            startActivity(new Intent(this, AuthActivity.class));
+            finish();
             return;
         }
+        
         dette.setUserId(userId);
+        
+        // Debug: Afficher toutes les données avant envoi
+        Log.d("SAVE_DETTE", "=== DONNEES DETTE ===");
+        Log.d("SAVE_DETTE", "Client ID: " + dette.getClientId());
+        Log.d("SAVE_DETTE", "Montant: " + dette.getMontant());
+        Log.d("SAVE_DETTE", "Description: " + dette.getDescription());
+        Log.d("SAVE_DETTE", "Date dette: " + dette.getDateDette());
+        Log.d("SAVE_DETTE", "Date échéance: " + dette.getDateEcheance());
+        Log.d("SAVE_DETTE", "Statut: " + dette.getStatut());
+        Log.d("SAVE_DETTE", "User ID: " + dette.getUserId());
         
         // Enregistrer la dette
         apiHelper.createDette(dette, new ApiHelper.DataCallback<Dette>() {
@@ -296,6 +331,7 @@ public class AddDetteActivity extends AppCompatActivity {
                     showProgress(false);
                     buttonSave.setEnabled(true);
                     
+                    Log.e("API_ERROR", "Erreur création dette: " + error);
                     Toast.makeText(AddDetteActivity.this, 
                         "Erreur: " + error, 
                         Toast.LENGTH_LONG).show();
@@ -305,9 +341,54 @@ public class AddDetteActivity extends AppCompatActivity {
     }
     
     private String getCurrentUserId() {
-        // Récupérer l'ID utilisateur depuis SharedPreferences
-        return getSharedPreferences("auth_prefs", MODE_PRIVATE)
-            .getString("user_id", null);
+        SharedPreferences prefs = getSharedPreferences("auth_prefs", MODE_PRIVATE);
+        
+        // Vérifier si l'utilisateur est marqué comme connecté
+        boolean isLoggedIn = prefs.getBoolean("is_logged_in", false);
+        
+        if (!isLoggedIn) {
+            Log.d("USER_ID", "Utilisateur non connecté selon prefs");
+            return null;
+        }
+        
+        // Obtenir l'ID utilisateur stocké
+        String userId = prefs.getString("user_id", null);
+        
+        // Vérifier si l'ID est invalide
+        if (userId == null || userId.isEmpty() || "default_user".equals(userId)) {
+            Log.d("USER_ID", "ID utilisateur invalide: " + userId);
+            
+            // Essayer d'obtenir l'email
+            String userEmail = prefs.getString("user_email", null);
+            if (userEmail != null && !userEmail.isEmpty()) {
+                Log.d("USER_ID", "Utilisation de l'email comme ID: " + userEmail);
+                // Mettre à jour les préférences avec l'email
+                prefs.edit().putString("user_id", userEmail).apply();
+                return userEmail;
+            }
+            
+            // Générer un ID unique basé sur l'appareil
+            String deviceId = Settings.Secure.getString(
+                getContentResolver(), 
+                Settings.Secure.ANDROID_ID
+            );
+            
+            if (deviceId != null && !deviceId.isEmpty()) {
+                String generatedId = "device_" + deviceId;
+                Log.d("USER_ID", "Utilisation de l'ID appareil: " + generatedId);
+                prefs.edit().putString("user_id", generatedId).apply();
+                return generatedId;
+            }
+            
+            // Dernier recours: timestamp
+            String timestampId = "user_" + System.currentTimeMillis();
+            Log.d("USER_ID", "Utilisation du timestamp: " + timestampId);
+            prefs.edit().putString("user_id", timestampId).apply();
+            return timestampId;
+        }
+        
+        Log.d("USER_ID", "ID utilisateur valide trouvé: " + userId);
+        return userId;
     }
     
     private void showProgress(boolean show) {
