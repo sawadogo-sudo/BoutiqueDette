@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permissions Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_clients"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.BoutiqueDette"
+        tools:targetApi="31">
+
+        <!-- Auth Activity -->
+        <activity
+            android:name=".AuthActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Main Activity (SANS ActionBar) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BoutiqueDette.NoActionBar" />
+
+        <!-- Clients Activity -->
+        <activity
+            android:name=".ClientsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- AddEditClient Activity (REMPLACE AddClientActivity) -->
+        <activity
+            android:name=".AddEditClientActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <!-- Client Details Activity -->
+        <activity
+            android:name=".ClientDetailsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Add Dette Activity -->
+        <activity
+            android:name=".AddDetteActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Add Paiement Activity -->
+        <activity
+            android:name=".AddPaiementActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- AddEditDette Activity -->
+        <activity
+            android:name=".AddEditDetteActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Register Activity -->
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+       
+    </application>
+
+</manifest>

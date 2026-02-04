@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Palette de couleurs complète -->
+
+    <!-- Couleurs primaires -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="light_gray">#D3D3D3</color>
+
+    <!-- Couleurs de l'application -->
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <!-- Alias pour compatibilité -->
+    <color name="primary_color">@color/colorPrimary</color>
+    <color name="secondary_color">@color/colorAccent</color>
+
+    <!-- Noms courts pour les layouts -->
+    <color name="primary">@color/colorPrimary</color>
+    <color name="secondary">@color/colorAccent</color>
+    <color name="gray">@color/gray_500</color>
+
+    <!-- Couleurs de texte -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_tertiary">#BDBDBD</color>
+    <color name="text_white">@color/white</color>
+    <color name="text_black">@color/black</color>
+
+    <!-- Arrière-plans -->
+    <color name="background">#F5F5F5</color>
+    <color name="background_gray">@color/background</color>
+    <color name="background_white">#FFFFFF</color>
+    <color name="background_dark">#121212</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Couleurs d'état -->
+    <color name="error">#F44336</color>
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FF9800</color>
+    <color name="info">#2196F3</color>
+
+    <!-- ✅ COULEUR MANQUANTE (cause du crash) -->
+    <color name="green">#4CAF50</color>
+
+    <!-- Gris -->
+    <color name="gray_50">#FAFAFA</color>
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_200">#EEEEEE</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#616161</color>
+    <color name="gray_800">#424242</color>
+    <color name="gray_900">#212121</color>
+
+    <!-- Autres -->
+    <color name="transparent">#00000000</color>
+    <color name="shadow">#1F000000</color>
+    <color name="status_overdue">#F44336</color> <!-- Rouge pour échue -->
+    <color name="status_pending">#FF9800</color> <!-- Orange pour en cours -->
+    <color name="status_paid">#4CAF50</color>   <!-- Vert pour payé -->
+    
+    <!-- AJOUTEZ CES COULEURS MANQUANTES pour le fragment_dettes.xml -->
+    <color name="backgroundLight">@color/gray_100</color> <!-- #F5F5F5 -->
+    <color name="primaryColor">@color/info</color> <!-- #2196F3 -->
+    <color name="primaryDark">#1976D2</color>
+    <color name="accentColor">@color/secondary</color> <!-- #FF4081 -->
+    <color name="textSecondary">@color/text_secondary</color> <!-- #757575 -->
+    <color name="textHint">@color/text_tertiary</color> <!-- #BDBDBD -->
+    <color name="cardBackground">@color/background_white</color> <!-- #FFFFFF -->
+</resources>

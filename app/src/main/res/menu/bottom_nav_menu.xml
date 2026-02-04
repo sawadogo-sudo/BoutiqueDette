@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Tableau de Bord en première position -->
+    <item
+        android:id="@+id/nav_dashboard"
+        android:icon="@drawable/ic_dashboard"
+        android:title="Tableau de Bord" />
+    
+    <item
+        android:id="@+id/nav_clients"
+        android:icon="@drawable/ic_clients"
+        android:title="Clients" />
+    
+    <item
+        android:id="@+id/nav_dettes"
+        android:icon="@drawable/ic_dettes"
+        android:title="Dettes" />
+    
+    <item
+        android:id="@+id/nav_paiement"
+        android:icon="@drawable/ic_paiement"
+        android:title="Paiement" />
+    
+    <item
+        android:id="@+id/nav_historique"
+        android:icon="@drawable/ic_historique"
+        android:title="Historique" />
+    
+</menu>
